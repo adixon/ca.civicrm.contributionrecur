@@ -94,9 +94,27 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             ),
           ),
         ),
+        'filters' => array(
+          'total_amount' => array(
+            'title' => ts('Total Amount'),
+            'operatorType' => CRM_Report_Form::OP_FLOAT,
+            'type' => CRM_Utils_Type::T_FLOAT,
+          ),
+        ),
       ),
       'civicrm_contribution_recur' => array(
         'dao' => 'CRM_Contribute_DAO_ContributionRecur',
+        'order_bys' => array(
+          'amount' => array(
+            'title' => ts("Amount"),
+          ),
+          'start_date' => array(
+            'title' => ts('Start Date'),
+          ),
+          'modified_date' => array(
+            'title' => ts('Modified Date'),
+          ),
+        ),
         'fields' => array(
           'id' => array(
             'no_display' => TRUE,
