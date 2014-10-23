@@ -35,11 +35,16 @@
 class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
   static private $nscd_fid = '';
+  static private $processors = array();
 
   function __construct() {
 
     self::$nscd_fid = _contributionrecur_civicrm_nscd_fid();
-
+    $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
+    $result = civicrm_api('PaymentProcessor', 'get', $params);
+    foreach($result['values'] as $pp) {
+      self::$processors[$pp['id']] = $pp['name'];
+    }
     $this->_columns = array(
       'civicrm_contact' => array(
         'dao' => 'CRM_Contact_DAO_Contact',
@@ -163,6 +168,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'failure_retry_date' => array(
             'title' => ts('Failure Retry Date'),
           ),
+          'payment_processor_id' => array(
+            'title' => ts('Payment Processor'),
+          ),
         ),
         'filters' => array(
           'contribution_status_id' => array(
@@ -170,6 +178,12 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => CRM_Contribute_PseudoConstant::contributionStatus(),
             'default' => array(5),
+            'type' => CRM_Utils_Type::T_INT,
+          ),
+          'payment_processor_id' => array(
+            'title' => ts('Payment Processor'),
+            'operatorType' => CRM_Report_Form::OP_MULTISELECT,
+            'options' => self::$processors,
             'type' => CRM_Utils_Type::T_INT,
           ),
           'currency' => array(
@@ -240,6 +254,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       // handle contribution status id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_contribution_status_id', $row)) {
         $rows[$rowNum]['civicrm_contribution_recur_contribution_status_id'] = $contributionStatus[$value];
+      }
+      // handle processor id
+      if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_payment_processor_id', $row)) {
+        $rows[$rowNum]['civicrm_contribution_recur_payment_processor_id'] = self::$processors[$value];
       }
     }
   }
