@@ -119,6 +119,12 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'modified_date' => array(
             'title' => ts('Modified Date'),
           ),
+          self::$nscd_fid  => array(
+            'title' => ts('Next Scheduled Contribution Date'),
+          ),
+          'payment_processor_id' => array(
+            'title' => ts('Payment Processor'),
+          ),
         ),
         'fields' => array(
           'id' => array(
