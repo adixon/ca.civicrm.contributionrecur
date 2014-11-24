@@ -36,10 +36,14 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
   static private $nscd_fid = '';
   static private $processors = array();
+  static private $version = array();
+  static private $financial_types = array();
 
   function __construct() {
 
     self::$nscd_fid = _contributionrecur_civicrm_nscd_fid();
+    self::$version = _contributionrecur_civicrm_domain_info('version');
+    self::$financial_types = (self::$version[0] <= 4 && self::$version[1] <= 2) ? array() : CRM_Contribute_PseudoConstant::financialType();
     $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
     $result = civicrm_api('PaymentProcessor', 'get', $params);
     foreach($result['values'] as $pp) {
@@ -202,7 +206,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'financial_type_id' => array(
             'title' => ts('Financial Type'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
-            'options'  => CRM_Contribute_PseudoConstant::financialType(),
+            'options'  => self::$financial_types,
             'type' => CRM_Utils_Type::T_INT,
           ),
           'frequency_unit' => array(
@@ -213,7 +217,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
         ),
       )
     );
-
+    if (empty(self::$financial_types)) {
+      unset($this->_columns['civicrm_contribution_recur']['filters']['financial_type_id']);
+    }
     parent::__construct();
   }
   function getTemplateName() {
@@ -227,7 +233,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_contribution_recur']}.contact_id";
     $this->_from .= "
       LEFT JOIN civicrm_contribution  {$this->_aliases['civicrm_contribution']}
-        ON {$this->_aliases['civicrm_contribution_recur']}.id = {$this->_aliases['civicrm_contribution']}.contribution_recur_id";
+        ON ({$this->_aliases['civicrm_contribution_recur']}.id = {$this->_aliases['civicrm_contribution']}.contribution_recur_id AND 1 = {$this->_aliases['civicrm_contribution']}.contribution_status_id)";
     $this->_from .= "
       LEFT JOIN civicrm_email  {$this->_aliases['civicrm_email']}
         ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_email']}.contact_id";
