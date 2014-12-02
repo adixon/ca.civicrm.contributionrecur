@@ -114,6 +114,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       'civicrm_contribution_recur' => array(
         'dao' => 'CRM_Contribute_DAO_ContributionRecur',
         'order_bys' => array(
+          'id' => array(
+            'title' => ts("Series ID"),
+          ),
           'amount' => array(
             'title' => ts("Amount"),
           ),
@@ -134,6 +137,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'id' => array(
             'no_display' => TRUE,
             'required' => TRUE,
+          ),
+          'recur_id' => array(
+            'name' => 'id',
+            'title' => ts('Series ID'),
           ),
           'currency' => array(
             'title' => ts("Currency")
