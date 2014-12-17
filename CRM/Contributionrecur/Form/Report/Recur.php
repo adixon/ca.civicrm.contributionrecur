@@ -34,6 +34,8 @@
  */
 class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
+  protected $_customGroupExtends = array('Contact');
+
   static private $nscd_fid = '';
   static private $processors = array();
 
