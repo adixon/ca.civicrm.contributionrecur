@@ -131,6 +131,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           self::$nscd_fid  => array(
             'title' => ts('Next Scheduled Contribution Date'),
           ),
+          'cycle_day'  => array(
+            'title' => ts('Cycle Day'),
+          ),
           'payment_processor_id' => array(
             'title' => ts('Payment Processor'),
           ),
@@ -143,6 +146,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'recur_id' => array(
             'name' => 'id',
             'title' => ts('Series ID'),
+          ),
+          'invoice_id' => array(
+            'title' => ts('Invoice ID'),
+            'default' => FALSE,
           ),
           'currency' => array(
             'title' => ts("Currency")
@@ -180,6 +187,14 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
           self::$nscd_fid => array(
             'title' => ts('Next Scheduled Contribution Date'),
+          ),
+          'next_scheduled_day'  => array(
+            'name' => self::$nscd_fid,
+            'dbAlias' => 'DAYOFMONTH(contribution_recur_civireport.next_sched_contribution)',
+            'title' => ts('Next Scheduled Day of the Month'),
+          ),
+          'cycle_day'  => array(
+            'title' => ts('Cycle Day'),
           ),
           'failure_count' => array(
             'title' => ts('Failure Count'),
@@ -222,6 +237,16 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'title' => ts('Frequency Unit'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' =>  CRM_Core_OptionGroup::values('recur_frequency_units'),
+          ),
+          'next_scheduled_day' => array(
+            'title' => ts('Next Scheduled Day'),
+            'operatorType' => CRM_Report_Form::OP_INT,
+            'type' => CRM_Utils_Type::T_INT,
+          ),
+          'cycle_day' => array(
+            'title' => ts('Cycle Day'),
+            'operatorType' => CRM_Report_Form::OP_INT,
+            'type' => CRM_Utils_Type::T_INT,
           ),
         ),
       )
