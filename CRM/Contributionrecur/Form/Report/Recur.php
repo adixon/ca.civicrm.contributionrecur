@@ -73,6 +73,11 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       ),
       'civicrm_email' => array(
         'dao' => 'CRM_Core_DAO_Email',
+        'order_bys' => array(
+          'email' => array(
+            'title' => ts('Email'),
+          ),
+        ),
         'fields' => array(
           'email' => array(
             'title' => ts('Email'),
