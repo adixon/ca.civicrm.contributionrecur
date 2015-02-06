@@ -253,6 +253,16 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'operatorType' => CRM_Report_Form::OP_INT,
             'type' => CRM_Utils_Type::T_INT,
           ),
+          'start_date' => array(
+            'title' => ts('Start Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'type' => CRM_Utils_Type::T_DATE,
+          ),
+          'modified_date' => array(
+            'title' => ts('Modified Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'type' => CRM_Utils_Type::T_DATE,
+          ),
         ),
       )
     );
