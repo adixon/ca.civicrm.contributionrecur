@@ -40,12 +40,23 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
   static private $processors = array();
   static private $version = array();
   static private $financial_types = array();
+  static private $prefixes = array();
+  static private $contributionStatus = array();
 
   function __construct() {
 
     self::$nscd_fid = _contributionrecur_civicrm_nscd_fid();
     self::$version = _contributionrecur_civicrm_domain_info('version');
     self::$financial_types = (self::$version[0] <= 4 && self::$version[1] <= 2) ? array() : CRM_Contribute_PseudoConstant::financialType();
+    if (self::$version[0] <= 4 && self::$version[1] < 4) {
+      self::$prefixes = CRM_Core_PseudoConstant::individualPrefix();
+      self::$contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus();
+    }
+    else {
+      self::$prefixes =  CRM_Contact_BAO_Contact::buildOptions('individual_prefix_id');
+      self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
+    }
+      
     $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
     $result = civicrm_api('PaymentProcessor', 'get', $params);
     foreach($result['values'] as $pp) {
@@ -60,6 +71,15 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
         ),
         'fields' => array(
+          'first_name' => array(
+            'title' => ts('First Name'),
+          ),
+          'last_name' => array(
+            'title' => ts('Last Name'),
+          ),
+          'prefix_id' => array(
+            'title' => ts('Prefix'),
+          ),
           'sort_name' => array(
             'title' => ts('Contact Name'),
             'no_repeat' => TRUE,
@@ -215,7 +235,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'contribution_status_id' => array(
             'title' => ts('Donation Status'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
-            'options' => CRM_Contribute_PseudoConstant::contributionStatus(),
+            'options' => self::$contributionStatus,
             'default' => array(5),
             'type' => CRM_Utils_Type::T_INT,
           ),
@@ -274,7 +294,43 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'type' => CRM_Utils_Type::T_DATE,
           ),
         ),
-      )
+      ),
+      'civicrm_address' => array(
+        'dao' => 'CRM_Core_DAO_Address',
+        'fields' => array(
+          'street_address' => array(
+            'title' => ts('Address'),
+            'default' => FALSE,
+          ),
+          'supplemental_address_1' => array(
+            'title' => ts('Supplementary Address Field 1'),
+            'default' => FALSE,
+          ),
+          'supplemental_address_2' => array(
+            'title' => ts('Supplementary Address Field 2'),
+            'default' => FALSE,
+          ),
+          'city' => array(
+            'title' => 'City',
+            'default' => FALSE,
+          ),
+          'state_province_id' => array(
+            'title' => 'Province',
+            'default' => FALSE,
+            'alter_display' => 'alterStateProvinceID',
+          ),
+          'postal_code' => array(
+            'title' => 'Postal Code',
+            'default' => FALSE,
+          ),
+          'country_id' => array(
+            'title' => 'Country',
+            'default' => FALSE,
+            'alter_display' => 'alterCountryID',
+          ),
+        ),
+        'grouping' => 'contact-fields',
+      ),
     );
     if (empty(self::$financial_types)) {
       unset($this->_columns['civicrm_contribution_recur']['filters']['financial_type_id']);
@@ -297,6 +353,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       LEFT JOIN civicrm_email  {$this->_aliases['civicrm_email']}
         ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_email']}.contact_id";
     $this->_from .= "
+      LEFT JOIN civicrm_address {$this->_aliases['civicrm_address']}
+        ON ({$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_address']}.contact_id AND
+          {$this->_aliases['civicrm_address']}.is_primary = 1 )";
+    $this->_from .= "
       LEFT  JOIN civicrm_phone {$this->_aliases['civicrm_phone']}
         ON ({$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_phone']}.contact_id AND
        {$this->_aliases['civicrm_phone']}.is_primary = 1)";
@@ -307,7 +367,6 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
   }
 
   function alterDisplay(&$rows) {
-    $contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus();
     foreach ($rows as $rowNum => $row) {
       // convert display name to links
       if (array_key_exists('civicrm_contact_sort_name', $row) &&
@@ -324,11 +383,21 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
       // handle contribution status id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_contribution_status_id', $row)) {
-        $rows[$rowNum]['civicrm_contribution_recur_contribution_status_id'] = $contributionStatus[$value];
+        $rows[$rowNum]['civicrm_contribution_recur_contribution_status_id'] = self::$contributionStatus[$value];
       }
       // handle processor id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_payment_processor_id', $row)) {
         $rows[$rowNum]['civicrm_contribution_recur_payment_processor_id'] = self::$processors[$value];
+      }
+      // handle address country and province id => value conversion
+      if ($value = CRM_Utils_Array::value('civicrm_address_country_id', $row)) {
+        $rows[$rowNum]['civicrm_address_country_id'] = CRM_Core_PseudoConstant::country($value, FALSE);
+      }
+      if ($value = CRM_Utils_Array::value('civicrm_address_state_province_id', $row)) {
+        $rows[$rowNum]['civicrm_address_state_province_id'] = CRM_Core_PseudoConstant::stateProvince($value, FALSE);
+      }
+      if ($value = CRM_Utils_Array::value('civicrm_contact_prefix_id', $row)) {
+        $rows[$rowNum]['civicrm_contact_prefix_id'] = self::$prefixes[$value];
       }
     }
   }
