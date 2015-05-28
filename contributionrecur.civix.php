@@ -47,7 +47,7 @@ function _contributionrecur_civix_civicrm_xmlMenu(&$files) {
 function _contributionrecur_civix_civicrm_install() {
   _contributionrecur_civix_civicrm_config();
   if ($upgrader = _contributionrecur_civix_upgrader()) {
-    $upgrader->onInstall();
+    return $upgrader->onInstall();
   }
 }
 
@@ -59,7 +59,7 @@ function _contributionrecur_civix_civicrm_install() {
 function _contributionrecur_civix_civicrm_uninstall() {
   _contributionrecur_civix_civicrm_config();
   if ($upgrader = _contributionrecur_civix_upgrader()) {
-    $upgrader->onUninstall();
+    return $upgrader->onUninstall();
   }
 }
 
@@ -72,7 +72,7 @@ function _contributionrecur_civix_civicrm_enable() {
   _contributionrecur_civix_civicrm_config();
   if ($upgrader = _contributionrecur_civix_upgrader()) {
     if (is_callable(array($upgrader, 'onEnable'))) {
-      $upgrader->onEnable();
+      return $upgrader->onEnable();
     }
   }
 }
@@ -81,13 +81,12 @@ function _contributionrecur_civix_civicrm_enable() {
  * (Delegated) Implementation of hook_civicrm_disable
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- * @return mixed
  */
 function _contributionrecur_civix_civicrm_disable() {
   _contributionrecur_civix_civicrm_config();
   if ($upgrader = _contributionrecur_civix_upgrader()) {
     if (is_callable(array($upgrader, 'onDisable'))) {
-      $upgrader->onDisable();
+      return $upgrader->onDisable();
     }
   }
 }
