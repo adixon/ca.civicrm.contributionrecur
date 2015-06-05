@@ -3,11 +3,11 @@ ca.civicrm.contribution_recur
 
 Useful extensions of recurring contribution functionality in CiviCRM.
 
-.1. Reports
+ 1. Reports
 
 Backported and extended Jamie McClelland's Report in https://issues.civicrm.org/jira/browse/CRM-15453
 
-.2.  Auto-memberships
+ 2.  Auto-memberships
 
 Memberships tied to recurring contributions have issues. Even non-recurring memberships are a bit unfriendly to manage. You would expect a contribution of type 'Membership Contribution' to auto-renew a membership, but it doesn't.
 
@@ -26,6 +26,6 @@ verbose=(if set, put a lot of debugging info into the job log)
 
 You'll want to run this on a testing install and use the countLimit and verbose to take a look at what it's doing, before you set it up on a production install.
 
-3. Restrict recurring options
+ 3. Restrict recurring options
 
 You can force recurring options to be limited to specific day(s) of the month.
