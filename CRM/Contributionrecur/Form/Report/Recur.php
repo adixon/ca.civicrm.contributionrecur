@@ -245,6 +245,11 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'options' => self::$processors,
             'type' => CRM_Utils_Type::T_INT,
           ),
+          'amount' => array(
+            'title' => ts('Recurring Amount'),
+            'operatorType' => CRM_Report_Form::OP_FLOAT,
+            'type' => CRM_Utils_Type::T_FLOAT,
+          ),
           'currency' => array(
             'title' => 'Currency',
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,

@@ -11,8 +11,8 @@ return array (
     'params' => 
     array (
       'version' => 3,
-      'name' => 'Call Job.MembershipImplicit API',
-      'description' => 'Call Job.MembershipImplicit API',
+      'name' => 'Process unallocated recurring membership payments'
+      'description' => 'Update Memberships from unallocated recurring contributions by financial type',
       'run_frequency' => 'Always',
       'api_entity' => 'Job',
       'api_action' => 'MembershipImplicit',
