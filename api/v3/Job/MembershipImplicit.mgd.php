@@ -11,7 +11,7 @@ return array (
     'params' => 
     array (
       'version' => 3,
-      'name' => 'Process unallocated recurring membership payments'
+      'name' => 'Process unallocated recurring membership payments',
       'description' => 'Update Memberships from unallocated recurring contributions by financial type',
       'run_frequency' => 'Always',
       'api_entity' => 'Job',
