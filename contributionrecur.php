@@ -128,3 +128,74 @@ function _contributionrecur_civicrm_nscd_fid() {
   $version = _contributionrecur_civicrm_domain_info('version');
   return (($version[0] <= 4) && ($version[1] <= 3)) ? 'next_sched_contribution' : 'next_sched_contribution_date';
 }
+
+/*
+ * hook_civicrm_buildForm
+ * Do a Drupal 7 style thing so we can write smaller functions
+ */
+function contributionrecur_civicrm_buildForm($formName, &$form) {
+  $monthly_setting = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_monthly'));
+  if (empty($monthly_setting)) {
+    global $civicrm_setting;
+    $monthly_setting = $civicrm_setting['Recurring Contribution Preferences']['contributionrecur_monthly'];
+  }
+  if (empty($monthly_setting)) {
+    return;
+  }
+  // otherwise, restrict recurring contributions to the days in settings
+  $fname = 'contributionrecur_'.$formName;
+  switch($formName) {
+    case 'CRM_Event_Form_Participant':
+    case 'CRM_Member_Form_Membership':
+    case 'CRM_Contribute_Form_Contribution':
+      // override normal convention, deal with all these backend credit card contribution forms the same way
+      $fname = 'contributionrecur_civicrm_buildForm_CreditCard_Backend';
+      break;
+
+    case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Event_Form_Registration_Register':
+      // override normal convention, deal with all these front-end contribution forms the same way
+      $fname = 'contributionrecur_civicrm_buildForm_Contribution_Frontend';
+      break;
+  }
+  if (function_exists($fname)) {
+    $fname($form);
+  }
+  // else { echo $fname; die(); }
+}
+
+function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
+  // ignore this form if I have no payment processor or there's no recurring option
+  if (empty($form->_paymentProcessors)) {
+    return;
+  }
+  if (empty($form->_elementIndex['is_recur'])) {
+    return;
+  }
+  $monthly_setting = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_monthly'));
+  if (empty($monthly_setting)) {
+    global $civicrm_setting;
+    $monthly_setting = $civicrm_setting['Recurring Contribution Preferences']['contributionrecur_monthly'];
+  }
+  // If a form enables recurring, set recurring to the default and required
+  $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
+  $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
+  $start_days = explode(',',$monthly_setting);
+  $start_dates = array(); // actual date options
+  $start_date = time() + 60*60; // force tomorrow if I'm too close to the end of today
+  for ($j = 0; $j < count($start_days); $j++) {
+    $i = 0;  // so I don't get into an infinite loop somehow ..
+    while(($i++ < 60) && !in_array($dp['mday'],$start_days)) {
+      $start_date += (24 * 60 * 60);
+      $dp = getdate($start_date);
+    }
+    $start_dates[date('Y-m-d',$start_date)] = strftime('%B %e, %Y',$start_date);
+    $start_date += (24 * 60 * 60);
+    $dp = getdate($start_date);
+  }
+  $form->addElement('select', 'start_date', ts('Date of first contribution.'), $start_dates);
+  CRM_Core_Region::instance('page-body')->add(array(
+    'template' => 'CRM/Contributionrecur/StartDate.tpl'
+  ));
+  CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
+}
