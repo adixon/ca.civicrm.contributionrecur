@@ -174,7 +174,7 @@ function contributionrecur_civicrm_pageRun(&$page) {
   if (function_exists($fname)) {
     $fname($page);
   }
-  else { echo $fname;
+  else { // echo $fname;
     // watchdog('civicustom','hook_civicrm_pageRun for page @name',array('@name' => $fname));
   }
 }
