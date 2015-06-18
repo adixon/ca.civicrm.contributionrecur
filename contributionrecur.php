@@ -278,13 +278,13 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
     return;
   }
   // show iats custom codes table data, if available
-  /// $extra = _contributionrecur_get_iats_extra($recur);
+  $extra = _contributionrecur_get_iats_extra($recur);
   if (empty($extra)) {
     return;
   }
   $template = CRM_Core_Smarty::singleton();
   foreach($extra as $key => $value) {
-    $template->assign( $key, $value);
+    $template->assign($key, $value);
   }
   CRM_Core_Region::instance('page-body')->add(array(
     'template' => 'CRM/Contributionrecur/ContributionRecur.tpl',
@@ -293,19 +293,28 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
 }
 
 function _contributionrecur_get_iats_extra($recur) {
-  if (empty($recur['invoice_id'])) {
+  if (empty($recur['id']) && empty($recur['invoice_id'])) {
     return;
+  }
+  $extra = array();
+  $params = array(1 => array('civicrm_iats_customer_codes', 'String'));
+  $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
+  if ($dao->fetch()) {
+    $params = array(1 => array($recur['id'],'Integer'));
+    $dao = CRM_Core_DAO::executeQuery("SELECT expiry FROM civicrm_iats_customer_codes WHERE recur_id = %1", $params);
+    if ($dao->fetch()) {
+      $expiry = str_split($dao->expiry,2);
+      $extra['expiry'] = '20'.implode('-',$expiry);
+    }
   }
   $params = array(1 => array('civicrm_iats_request_log', 'String'));
   $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
-  if (!$dao->fetch()) {
-    return;
+  if ($dao->fetch()) {
+    $params = array(1 => array($recur['invoice_id'],'String'));
+    $dao = CRM_Core_DAO::executeQuery("SELECT cc FROM civicrm_iats_request_log WHERE invoice_num = %1", $params);
+    if ($dao->fetch()) {
+      $extra['cc'] = $dao->cc;
+    }
   }
-  $params[2] = array($recur['invoice_id'],'String');
-  $dao = CRM_Core_DAO::executeQuery("SELECT * FROM %1 WHERE invoice_num = %2", $params);
-  if (!$dao->fetch()) {
-    return;
-  }
-  $extra = array('cc' => $dao->cc);
   return $extra;
 }
