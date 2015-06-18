@@ -343,7 +343,7 @@ function _contributionrecur_get_iats_extra($recur) {
   }
   $params = array(1 => array('civicrm_iats_request_log', 'String'));
   $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
-  if ($dao->fetch()) {
+  if (!empty($recur['id']) && $dao->fetch()) {
     $params = array(1 => array($recur['invoice_id'],'String'));
     $dao = CRM_Core_DAO::executeQuery("SELECT cc FROM civicrm_iats_request_log WHERE invoice_num = %1", $params);
     if ($dao->fetch()) {
