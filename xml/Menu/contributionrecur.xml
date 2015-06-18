@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/admin/contribute/recursettings</path>
+    <page_callback>CRM_Contributionrecur_Form_ContributionRecurSettings</page_callback>
+    <title>Recurring Contributions, Advanced Settings</title>
+    <access_arguments>administer CiviCRM,access CiviContribute</access_arguments>
+  </item>
+</menu>

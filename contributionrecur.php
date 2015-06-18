@@ -107,6 +107,42 @@ function contributionrecur_civicrm_alterSettingsFolders(&$metaDataFolders = NULL
   _contributionrecur_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
+/*
+ * Put my settings page into the navigation menu
+ */
+function contributionrecur_civicrm_navigationMenu(&$navMenu) {
+  $item = array(
+    'label' => 'Recurring Contributions Settings',
+    'name' => 'Recurring Contributions Settings',
+    'url' => 'civicrm/admin/contribute/recursettings',
+    'permission' => 'access CiviContribute,administer CiviCRM',
+    'operator'   => 'AND',
+    'separator'  => NULL,
+    'active'     => 1
+  );
+  // Check that our item doesn't already exist
+  $menu_item_search = array('url' => $item['url']);
+  $menu_items = array();
+  CRM_Core_BAO_Navigation::retrieve($menu_item_search, $menu_items);
+  if (empty($menu_items)) {
+    $item['navID'] = 1 + CRM_Core_DAO::singleValueQuery("SELECT max(id) FROM civicrm_navigation");
+    foreach ($navMenu as $key => $value) {
+      if ('Administer' == $value['attributes']['name']) {
+        $parent_key = $key;
+        foreach($value['child'] as $child_key => $child_value) {
+          if ('CiviContribute' == $child_value['attributes']['name']) {
+            $item['parentID'] =  $child_key;
+            $navMenu[$parent_key]['child'][$child_key]['child'][$item['navId']] = array(
+              'attributes' => $item,
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
 function _contributionrecur_civicrm_domain_info($key) {
   static $domain;
   if (empty($domain)) {
@@ -134,18 +170,15 @@ function _contributionrecur_civicrm_nscd_fid() {
  * Do a Drupal 7 style thing so we can write smaller functions
  */
 function contributionrecur_civicrm_buildForm($formName, &$form) {
-  $monthly_setting = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_monthly'));
-  if (empty($monthly_setting)) {
-    global $civicrm_setting;
-    $monthly_setting = $civicrm_setting['Recurring Contribution Preferences']['contributionrecur_monthly'];
-  }
+  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  $days = empty($settings['days']) ? array('-1') : $settings['days'];
   // otherwise, restrict recurring contributions to the days in settings
   $fname = 'contributionrecur_'.$formName;
   switch($formName) {
     case 'CRM_Event_Form_Participant':
     case 'CRM_Member_Form_Membership':
     case 'CRM_Contribute_Form_Contribution':
-      if (empty($monthly_setting)) {
+      if (0 >= max($days)) {
         return;
       }
       // override normal convention, deal with all these backend credit card contribution forms the same way
@@ -155,7 +188,7 @@ function contributionrecur_civicrm_buildForm($formName, &$form) {
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
       // override normal convention, deal with all these front-end contribution forms the same way
-      if (empty($monthly_setting)) {
+      if (0 >= max($days)) {
         return;
       }
       $fname = 'contributionrecur_civicrm_buildForm_Contribution_Frontend';
@@ -190,15 +223,11 @@ function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
   if (empty($form->_elementIndex['is_recur'])) {
     return;
   }
-  $monthly_setting = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_monthly'));
-  if (empty($monthly_setting)) {
-    global $civicrm_setting;
-    $monthly_setting = $civicrm_setting['Recurring Contribution Preferences']['contributionrecur_monthly'];
-  }
+  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  $start_days = empty($settings['days']) ? array('-1') : $settings['days'];
   // If a form enables recurring, set recurring to the default and required
   $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
   $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
-  $start_days = explode(',',$monthly_setting);
   $start_dates = array(); // actual date options
   $start_date = time() + 60*60; // force tomorrow if I'm too close to the end of today
   for ($j = 0; $j < count($start_days); $j++) {
@@ -228,6 +257,11 @@ function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
 function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   // only do this if the user is allowed to edit contributions. A more stringent permission might be smart.
   if (!CRM_Core_Permission::check('edit contributions')) {
+    return;
+  }
+  // don't do this unless the site administrator has enabled it
+  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  if (empty($settings['edit_extra'])) {
     return;
   }
   $crid = CRM_Utils_Request::retrieve('crid', 'Integer', $form, FALSE);
