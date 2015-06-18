@@ -139,15 +139,15 @@ function contributionrecur_civicrm_buildForm($formName, &$form) {
     global $civicrm_setting;
     $monthly_setting = $civicrm_setting['Recurring Contribution Preferences']['contributionrecur_monthly'];
   }
-  if (empty($monthly_setting)) {
-    return;
-  }
   // otherwise, restrict recurring contributions to the days in settings
   $fname = 'contributionrecur_'.$formName;
   switch($formName) {
     case 'CRM_Event_Form_Participant':
     case 'CRM_Member_Form_Membership':
     case 'CRM_Contribute_Form_Contribution':
+      if (empty($monthly_setting)) {
+        return;
+      }
       // override normal convention, deal with all these backend credit card contribution forms the same way
       $fname = 'contributionrecur_civicrm_buildForm_CreditCard_Backend';
       break;
@@ -155,6 +155,9 @@ function contributionrecur_civicrm_buildForm($formName, &$form) {
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
       // override normal convention, deal with all these front-end contribution forms the same way
+      if (empty($monthly_setting)) {
+        return;
+      }
       $fname = 'contributionrecur_civicrm_buildForm_Contribution_Frontend';
       break;
   }
@@ -275,7 +278,7 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
     return;
   }
   // show iats custom codes table data, if available
-  $extra = _contributionrecur_get_iats_extra($recur);
+  /// $extra = _contributionrecur_get_iats_extra($recur);
   if (empty($extra)) {
     return;
   }
