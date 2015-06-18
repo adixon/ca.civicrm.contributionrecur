@@ -13,6 +13,7 @@ return array (
       'version' => 3,
       'name' => 'Process unallocated recurring membership payments',
       'description' => 'Update Memberships from unallocated recurring contributions by financial type',
+      'is_active' => 0,
       'run_frequency' => 'Always',
       'api_entity' => 'Job',
       'api_action' => 'MembershipImplicit',
