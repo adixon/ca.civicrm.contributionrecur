@@ -119,7 +119,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
   }
     // Spec: civicrm_api3_create_success($values = 1, $params = array(), $entity = NULL, $action = NULL)
   if (!empty($results)) { 
-    $output = $verbose ? print_r($results, TRUE) : 'Processed '.count($results).' contacts'; 
+    $output = $verbose ? $sql.print_r($results, TRUE) : 'Processed '.count($results).' contacts'; 
     return civicrm_api3_create_success($output);
   } else {
     return civicrm_api3_create_success("Nothing to do! ".$sql);
