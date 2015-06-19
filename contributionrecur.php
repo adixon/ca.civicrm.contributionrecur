@@ -240,7 +240,7 @@ function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
     $start_date += (24 * 60 * 60);
     $dp = getdate($start_date);
   }
-  $form->addElement('select', 'start_date', ts('Date of first contribution.'), $start_dates);
+  $form->addElement('select', 'receive_date', ts('Date of first contribution.'), $start_dates);
   CRM_Core_Region::instance('page-body')->add(array(
     'template' => 'CRM/Contributionrecur/StartDate.tpl'
   ));
