@@ -167,6 +167,7 @@ function _contributionrecur_civicrm_nscd_fid() {
 
 /*
  * hook_civicrm_buildForm
+ *
  * Do a Drupal 7 style thing so we can write smaller functions
  */
 function contributionrecur_civicrm_buildForm($formName, &$form) {
@@ -182,7 +183,8 @@ function contributionrecur_civicrm_buildForm($formName, &$form) {
         return;
       }
       // override normal convention, deal with all these backend credit card contribution forms the same way
-      $fname = 'contributionrecur_civicrm_buildForm_CreditCard_Backend';
+      // NOTE: disabled
+      // $fname = 'contributionrecur_civicrm_buildForm_CreditCard_Backend';
       break;
 
     case 'CRM_Contribute_Form_Contribution_Main':
@@ -191,7 +193,8 @@ function contributionrecur_civicrm_buildForm($formName, &$form) {
       if (0 >= max($days)) {
         return;
       }
-      $fname = 'contributionrecur_civicrm_buildForm_Contribution_Frontend';
+      // NOTE: disabled
+      // $fname = 'contributionrecur_civicrm_buildForm_Contribution_Frontend';
       break;
   }
   if (function_exists($fname)) {
@@ -215,6 +218,51 @@ function contributionrecur_civicrm_pageRun(&$page) {
   }
 }
 
+/*
+ * hook_civicrm_pre
+ *
+ * If the recurring days restriction settings are configured, then push the next scheduled contribution date forward to the first allowable one.
+ * TODO: should there be cases where the next scheduled contribution is pulled forward? E.g. if it's still the next month and at least 15 days?
+ */
+
+function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
+  // since this function gets called a lot, quickly determine if I care about the record being created
+  if (('ContributionRecur' == $objectName) && !empty($params['next_sched_contribution_date'])) {
+    // watchdog('_civicrm','hook_civicrm_pre for Contribution <pre>@params</pre>',array('@params' => print_r($params));
+    $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+    $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+    if (0 < max($allow_days)) {
+      $from_time = _contributionrecur_next(strtotime($params['next_sched_contribution_date']),$allow_days);
+      $params['next_sched_contribution_date'] = date('Y-m-d H:i:s', $from_time);
+    }
+  }
+}
+
+/*
+ * function _contributionrecur_next
+ *
+ * @param $from_time: a unix time stamp, the function returns values greater than this
+ * @param $days: an array of allowable days of the month
+ *
+ * A utility function to calculate the next available allowable day, starting from $from_time.
+ * Strategy: increment the from_time by one day until the day of the month matches one of my available days of the month.
+ */
+function _contributionrecur_next($from_time, $allow_mdays) {
+  $dp = getdate($from_time);
+  $i = 0;  // so I don't get into an infinite loop somehow
+  while(($i++ < 60) && !in_array($dp['mday'],$allow_mdays)) {
+    $from_time += (24 * 60 * 60);
+    $dp = getdate($from_time);
+  }
+  return $from_time;
+}
+
+/*
+ * hook_civicrm_buildForm for all front end contribution forms
+ *
+ * Adds a field to configure the receive date.
+ * This form is not in use, because it doesn't actually work (yet?) 
+ */
 function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
   // ignore this form if I have no payment processor or there's no recurring option
   if (empty($form->_paymentProcessors)) {
@@ -259,10 +307,15 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   if (!CRM_Core_Permission::check('edit contributions')) {
     return;
   }
-  // don't do this unless the site administrator has enabled it
   $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  // don't do this unless the site administrator has enabled it
   if (empty($settings['edit_extra'])) {
     return;
+  }
+  $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+  if (0 < max($allow_days)) {
+    $userAlert = ts('Your next scheduled contribution date will automatically be updated to the next allowable day of the month: %1',array(1 => implode(',',$allow_days)));
+    CRM_Core_Session::setStatus($userAlert, ts('Warning'), 'alert');
   }
   $crid = CRM_Utils_Request::retrieve('crid', 'Integer', $form, FALSE);
   /* get the recurring contribution record and the contact record, or quit */
