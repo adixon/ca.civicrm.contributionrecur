@@ -8,7 +8,7 @@
  */
 
 /**
- * Job.MembershipImplicit API specification (optional)
+ * Job.Membershipimplicit API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
@@ -37,7 +37,7 @@ function _civicrm_api3_job_membershipimplicit_spec(&$spec) {
 }
 
 /**
- * Job.MembershipImplicit API
+ * Job.Membershipimplicit API
  *
  * @param array $params
  * @return array API result descriptor

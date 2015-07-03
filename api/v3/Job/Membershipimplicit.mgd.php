@@ -6,7 +6,7 @@
 return array (
   0 => 
   array (
-    'name' => 'Cron:Job.MembershipImplicit',
+    'name' => 'Cron:Job.Membershipimplicit',
     'entity' => 'Job',
     'params' => 
     array (
@@ -16,7 +16,7 @@ return array (
       'is_active' => 0,
       'run_frequency' => 'Always',
       'api_entity' => 'Job',
-      'api_action' => 'MembershipImplicit',
+      'api_action' => 'Membershipimplicit',
       'parameters' => 'mapping=0:0
 dateLimit=-1 year',
     ),
