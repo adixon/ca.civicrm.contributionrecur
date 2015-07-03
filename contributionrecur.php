@@ -82,6 +82,44 @@ function contributionrecur_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
  */
 function contributionrecur_civicrm_managed(&$entities) {
+  $entities[] = array(
+    'module' => 'ca.civicrm.contributionrecur',
+    'name' => 'ContributionRecur',
+    'entity' => 'PaymentProcessorType',
+    'params' => array(
+      'version' => 3,
+      'name' => 'Recurring Offline Credit Card Contribution',
+      'title' => 'Offline Credit Card',
+      'description' => 'Offline credit card dummy payment processor.',
+      'class_name' => 'Payment_RecurOffline',
+      'billing_mode' => 'form',
+      'user_name_label' => 'Account (ignored)',
+      'password_label' => 'Password (ignored)',
+      'url_site_default' => 'https://github.com/adixon/ca.civicrm.contributionrecur',
+      'url_site_test_default' => 'https://github.com/adixon/ca.civicrm.contributionrecur',
+      'is_recur' => 1,
+      'payment_type' => 1,
+    ),
+  );
+  $entities[] = array(
+    'module' => 'ca.civicrm.contributionrecur',
+    'name' => 'ContributionRecurACHEFT',
+    'entity' => 'PaymentProcessorType',
+    'params' => array(
+      'version' => 3,
+      'name' => 'Recurring Offline ACH/EFT Contribution',
+      'title' => 'Offline ACH/EFT',
+      'description' => 'Offline ACH/EFT dummy payment processor.',
+      'class_name' => 'Payment_RecurOfflineACHEFT',
+      'billing_mode' => 'form',
+      'user_name_label' => 'Account (ignored)',
+      'password_label' => 'Password (ignored)',
+      'url_site_default' => 'https://github.com/adixon/ca.civicrm.contributionrecur',
+      'url_site_test_default' => 'https://github.com/adixon/ca.civicrm.contributionrecur',
+      'is_recur' => 1,
+      'payment_type' => 2,
+    ),
+  );
   _contributionrecur_civix_civicrm_managed($entities);
 }
 
@@ -227,15 +265,77 @@ function contributionrecur_civicrm_pageRun(&$page) {
 
 function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   // since this function gets called a lot, quickly determine if I care about the record being created
-  if (('ContributionRecur' == $objectName) && !empty($params['next_sched_contribution_date'])) {
-    // watchdog('_civicrm','hook_civicrm_pre for Contribution <pre>@params</pre>',array('@params' => print_r($params));
-    $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-    $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
-    if (0 < max($allow_days)) {
-      $from_time = _contributionrecur_next(strtotime($params['next_sched_contribution_date']),$allow_days);
-      $params['next_sched_contribution_date'] = date('Y-m-d H:i:s', $from_time);
-    }
+  switch($objectName) {
+    case 'ContributionRecur':
+      if (!empty($params['next_sched_contribution_date'])) {
+        // watchdog('_civicrm','hook_civicrm_pre for Contribution <pre>@params</pre>',array('@params' => print_r($params));
+        $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+        $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+        if (0 < max($allow_days)) {
+          $from_time = _contributionrecur_next(strtotime($params['next_sched_contribution_date']),$allow_days);
+          $params['next_sched_contribution_date'] = date('Y-m-d H:i:s', $from_time);
+        }
+      }
+      if (!empty($params['payment_processor_id'])) {
+        $payment_type = _contributionrecur_payment_type($pp_id);
+        if (2 == $payment_type) {
+          $params['payment_instrument_id'] = 5;
+        }
+      }
+      break;
+    case 'Contribution':
+      if (!empty($params['contribution_recur_id'])) {
+        $pp_id = _contributionrecur_payment_processor_id($params['contribution_recur_id']);
+        if ($pp_id) {
+          $payment_type = _contributionrecur_payment_type($pp_id);
+          if (2 == $payment_type) {
+            $params['payment_instrument_id'] = 5;
+          }
+        }
+      }
+      break;
   }
+}
+
+/*
+ * The contribution itself doesn't tell you which payment processor it came from
+ * So we have to dig back via the contribution_recur_id that it is associated with.
+ */
+function _contributionrecur_payment_processor_id($contribution_recur_id) {
+  $params = array(
+    'version' => 3,
+    'sequential' => 1,
+    'id' => $contribution_recur_id,
+    'return' => 'payment_processor_id'
+  );
+  $result = civicrm_api('ContributionRecur', 'getvalue', $params);
+  if (empty($result['result'])) {
+    return FALSE;
+    // TODO: log error
+  }
+  return $result['result'];
+}
+
+/* 
+ * See if I need to fix the payment instrument by looking for 
+ * my offline recurring acheft processor
+ * I'm assuming that other type 2 processors take care of themselves,
+ * but you could remove class_name to fix them also
+ */
+function _contributionrecur_payment_type($payment_processor_id) {
+  $params = array(
+    'version' => 3,
+    'sequential' => 1,
+    'id' => $payment_processor_id,
+    'class_name' => 'Payment_RecurOfflineACHEFT',
+    'return' => 'payment_type'
+  );
+  $result = civicrm_api('PaymentProcessor', 'getvalue', $params);
+  if (empty($result['result'])) {
+    return FALSE;
+    // TODO: log error
+  }
+  return $result['result'];
 }
 
 /*
@@ -386,7 +486,7 @@ function _contributionrecur_get_iats_extra($recur) {
   $extra = array();
   $params = array(1 => array('civicrm_iats_customer_codes', 'String'));
   $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
-  if ($dao->fetch()) {
+  if (!empty($recur['id']) && $dao->fetch()) {
     $params = array(1 => array($recur['id'],'Integer'));
     $dao = CRM_Core_DAO::executeQuery("SELECT expiry FROM civicrm_iats_customer_codes WHERE recur_id = %1", $params);
     if ($dao->fetch()) {
@@ -396,7 +496,7 @@ function _contributionrecur_get_iats_extra($recur) {
   }
   $params = array(1 => array('civicrm_iats_request_log', 'String'));
   $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
-  if (!empty($recur['id']) && $dao->fetch()) {
+  if (!empty($recur['invoice_id']) && $dao->fetch()) {
     $params = array(1 => array($recur['invoice_id'],'String'));
     $dao = CRM_Core_DAO::executeQuery("SELECT cc FROM civicrm_iats_request_log WHERE invoice_num = %1", $params);
     if ($dao->fetch()) {
@@ -404,4 +504,34 @@ function _contributionrecur_get_iats_extra($recur) {
     }
   }
   return $extra;
+}
+
+/**
+ * For a given recurring contribution, find a reasonable candidate for a template, where possible
+ */
+function _contributionrecur_civicrm_getContributionTemplate($contribution) {
+  // Get the first contribution in this series that matches the same total_amount, if present
+  $template = array();
+  $get = array('version'  => 3, 'contribution_recur_id' => $contribution['contribution_recur_id'], 'options'  => array('sort'  => ' id' , 'limit'  => 1));
+  if (!empty($contribution['total_amount'])) {
+    $get['total_amount'] = $contribution['total_amount'];
+  }
+  $result = civicrm_api('contribution', 'get', $get);
+  if (!empty($result['values'])) {
+    $contribution_ids = array_keys($result['values']);
+    $template = $result['values'][$contribution_ids[0]];
+    $template['line_items'] = array();
+    $get = array('version'  => 3, 'entity_table' => 'civicrm_contribution', 'entity_id' => $contribution_ids[0]);
+    $result = civicrm_api('LineItem', 'get', $get);
+    if (!empty($result['values'])) {
+      foreach($result['values'] as $initial_line_item) {
+        $line_item = array();
+        foreach(array('price_field_id','qty','line_total','unit_price','label','price_field_value_id','financial_type_id') as $key) {
+          $line_item[$key] = $initial_line_item[$key];
+        }
+        $template['line_items'] = $line_item;
+      }
+    }
+  }
+  return $template;
 }
