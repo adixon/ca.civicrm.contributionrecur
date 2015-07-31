@@ -206,7 +206,7 @@ function _contributionrecur_civicrm_nscd_fid() {
 function contributionrecur_civicrm_varset($vars) {
   $version = CRM_Utils_System::version();
   if (version_compare($version, '4.5') < 0) { /// support 4.4!
-    CRM_Core_Resources::singleton()->addSetting('contributionrecur', $vars);
+    CRM_Core_Resources::singleton()->addSetting(array('contributionrecur' => $vars));
   }
   else {
     CRM_Core_Resources::singleton()->addVars('contributionrecur', $vars);

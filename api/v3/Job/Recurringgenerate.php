@@ -38,6 +38,8 @@ function civicrm_api3_job_recurringgenerate($params) {
       && empty($params['contact_id'])
       && empty($params['id'])
   ) return;
+  $catchup = !empty($params['catchup']);
+  $domemberships = empty($params['ignorememberships']);
   // running this job in parallell could generate bad duplicate contributions
   $lock = new CRM_Core_Lock('civimail.job.Recurringgenerate');
   $update = array();
@@ -163,13 +165,13 @@ function civicrm_api3_job_recurringgenerate($params) {
     $contribution_recur_id    = $dao->id;
     $pp_type = $dao->class_name;
     $source = "Recurring Contribution (id=$contribution_recur_id, class=$pp_type)"; 
-    $receive_date = date("YmdHis"); // i.e. now
+    $receive_date = $catchup ? strtotime($dao->next_sched_contribution_date) : time();
     // check if we already have an error
     $errors = array();
     $contribution = array(
       'version'        => 3,
       'contact_id'       => $contact_id,
-      'receive_date'       => $receive_date,
+      'receive_date'       => date('YmdHis',$receive_date),
       'total_amount'       => $total_amount,
       'payment_instrument_id'  => $dao->payment_instrument_id,
       'contribution_recur_id'  => $contribution_recur_id,
@@ -196,7 +198,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     $contributionResult = civicrm_api('contribution','create', $contribution);
     $contribution_id = CRM_Utils_Array::value('id', $contributionResult);
     // if our template contribution has a membership payment, make this one also
-    if (!empty($contribution_template['contribution_id'])) {
+    if ($domemberships && !empty($contribution_template['contribution_id'])) {
       try {
         $membership_payment = civicrm_api('MembershipPayment','getsingle', array('version' => 3, 'contribution_id' => $contribution_template['contribution_id']));
         if (!empty($membership_payment['membership_id'])) {
@@ -210,8 +212,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     //$mem_end_date = $member_dao->end_date;
     // $temp_date = strtotime($dao->next_sched_contribution);
     /* calculate the next collection date. You could use the previous line instead if you wanted to catch up with missing contributions instead of just moving forward from the present */
-    $temp_date = time();
-    $next_collectionDate = strtotime ("+$dao->frequency_interval $dao->frequency_unit", $temp_date);
+    $next_collectionDate = strtotime ("+$dao->frequency_interval $dao->frequency_unit", $receive_date);
     $next_collectionDate = date('YmdHis', $next_collectionDate);
 
     CRM_Core_DAO::executeQuery("
