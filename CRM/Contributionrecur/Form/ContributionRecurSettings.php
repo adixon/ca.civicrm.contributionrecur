@@ -9,31 +9,36 @@ require_once 'CRM/Core/Form.php';
  */
 class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form {
   function buildQuickForm() {
-    $days = array('-1' => 'disabled');
-    for ($i = 1; $i <= 28; $i++) {
-      $days["$i"] = "$i";
-    }
-    $result = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-    $defaults = (empty($result)) ? array() : $result;
-    $attr =  array('size' => 5,
-         'style' => 'width:150px',
-         'class' => 'advmultiselect',
-         'required' => FALSE);
-    $day_select = $this->add(
-      'advmultiselect', // field type
-      'days', // field name
-      '<h3>'.ts('Restrict allowable days of the month for recurring contributions.').'</h3>'.ts('To disable this functionality and allow any day to be selected, choose the "disabled" option as the only Allowed day.'),
-      $days,
-      FALSE,
-      $attr
-    );
-    
-    $day_select->setLabel(array('Recurring days', 'Disallowed', 'Allowed'));
     $this->add(
       'checkbox', // field type
       'edit_extra', // field name
       ts('Enable extra edit fields for recurring contributions.')
     );
+    $this->add(
+      'checkbox', // field type
+      'force_recur', // field name
+      ts('Force recurring-only option on pages that it is available.')
+    );
+    $days = array('-1' => 'disabled');
+    for ($i = 1; $i <= 28; $i++) {
+      $days["$i"] = "$i";
+    }
+    $result = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+    $defaults = (empty($result)) ? array('-1') : $result;
+    $attr =  array('size' => 29,
+         'style' => 'width:150px',
+         'required' => FALSE);
+    $day_select = $this->add(
+      'select', // field type
+      'days', // field name
+      ts('Restrict allowable days of the month for recurring contributions.'),
+      $days,
+      FALSE,
+      $attr
+    );
+    
+    $day_select->setMultiple(TRUE);
+    $day_select->setSize(29);
     $this->addButtons(array(
       array(
         'type' => 'submit',

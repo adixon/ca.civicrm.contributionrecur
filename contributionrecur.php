@@ -203,38 +203,23 @@ function _contributionrecur_civicrm_nscd_fid() {
   return (($version[0] <= 4) && ($version[1] <= 3)) ? 'next_sched_contribution' : 'next_sched_contribution_date';
 }
 
+function contributionrecur_civicrm_varset($vars) {
+  $version = CRM_Utils_System::version();
+  if (version_compare($version, '4.5') < 0) { /// support 4.4!
+    CRM_Core_Resources::singleton()->addSetting('contributionrecur', $vars);
+  }
+  else {
+    CRM_Core_Resources::singleton()->addVars('contributionrecur', $vars);
+  }
+}
+
 /*
  * hook_civicrm_buildForm
  *
  * Do a Drupal 7 style thing so we can write smaller functions
  */
 function contributionrecur_civicrm_buildForm($formName, &$form) {
-  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-  $days = empty($settings['days']) ? array('-1') : $settings['days'];
-  // otherwise, restrict recurring contributions to the days in settings
   $fname = 'contributionrecur_'.$formName;
-  switch($formName) {
-    case 'CRM_Event_Form_Participant':
-    case 'CRM_Member_Form_Membership':
-    case 'CRM_Contribute_Form_Contribution':
-      if (0 >= max($days)) {
-        return;
-      }
-      // override normal convention, deal with all these backend credit card contribution forms the same way
-      // NOTE: disabled
-      // $fname = 'contributionrecur_civicrm_buildForm_CreditCard_Backend';
-      break;
-
-    case 'CRM_Contribute_Form_Contribution_Main':
-    case 'CRM_Event_Form_Registration_Register':
-      // override normal convention, deal with all these front-end contribution forms the same way
-      if (0 >= max($days)) {
-        return;
-      }
-      // NOTE: disabled
-      // $fname = 'contributionrecur_civicrm_buildForm_Contribution_Frontend';
-      break;
-  }
   if (function_exists($fname)) {
     $fname($form);
   }
@@ -358,12 +343,12 @@ function _contributionrecur_next($from_time, $allow_mdays) {
 }
 
 /*
- * hook_civicrm_buildForm for all front end contribution forms
+ * hook_civicrm_buildForm for public ("front-end") contribution forms
  *
- * Adds a field to configure the receive date.
- * This form is not in use, because it doesn't actually work (yet?) 
+ * Force recurring if it's an option on this form and configured in the settings
+ * Add information about the next contribution if the allowed days are configured
  */
-function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
+function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   // ignore this form if I have no payment processor or there's no recurring option
   if (empty($form->_paymentProcessors)) {
     return;
@@ -372,30 +357,23 @@ function contributionrecur_civicrm_buildForm_Contribution_Frontend(&$form) {
     return;
   }
   $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-  $start_days = empty($settings['days']) ? array('-1') : $settings['days'];
-  // If a form enables recurring, set recurring to the default and required
-  $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
-  $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
-  $start_dates = array(); // actual date options
-  $start_date = time() + 60*60; // force tomorrow if I'm too close to the end of today
-  for ($j = 0; $j < count($start_days); $j++) {
-    $i = 0;  // so I don't get into an infinite loop somehow ..
-    while(($i++ < 60) && !in_array($dp['mday'],$start_days)) {
-      $start_date += (24 * 60 * 60);
-      $dp = getdate($start_date);
-    }
-    $start_dates[date('Y-m-d',$start_date)] = strftime('%B %e, %Y',$start_date);
-    $start_date += (24 * 60 * 60);
-    $dp = getdate($start_date);
+  // if the site administrator has enabled forced recurring pages
+  if (!empty($settings['force_recur'])) {
+    // If a form enables recurring, and the force_recur setting is on, set recurring to the default and required
+    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
+    $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
+    contributionrecur_civicrm_varset(array('forceRecur' => '1'));
   }
-  $form->addElement('select', 'receive_date', ts('Date of first contribution.'), $start_dates);
-  CRM_Core_Region::instance('page-body')->add(array(
-    'template' => 'CRM/Contributionrecur/StartDate.tpl'
-  ));
-  CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
+  // if the site administrator has resticted the recurring days
+  $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+  if (max($allow_days) > 0) {
+    $next_time = _contributionrecur_next(strtotime('+1 day'),$allow_days);
+    contributionrecur_civicrm_varset(array('nextDate' => date('Y-m-d', $next_time)));
+  }
+  if ((max($allow_days) > 0) || !empty($settings['force_recur'])) {
+    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
+  }
 }
-
-// function _contributionrecur_get_next_dates
 
 /* 
  * add some functionality to the update subscription form for recurring contributions 
@@ -535,3 +513,5 @@ function _contributionrecur_civicrm_getContributionTemplate($contribution) {
   }
   return $template;
 }
+
+
