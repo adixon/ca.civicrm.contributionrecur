@@ -10,7 +10,10 @@ cj(function ($) {
   'use strict';
   var recurSettings = (typeof CRM.contributionrecur == 'undefined') ? CRM.vars.contributionrecur : CRM.contributionrecur;
   if (recurSettings.forceRecur == '1') {
-    $('#is_recur').prop('disabled',true);
+    $('#is_recur').click(function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    });
   }
   if (recurSettings.nextDate.length > 0) {
     $('.is_recur-section .content').append('<div class="description">'+ts('Your first contribution date will be %1.', {1:recurSettings.nextDate})+'</div>');
