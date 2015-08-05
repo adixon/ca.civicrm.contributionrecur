@@ -80,6 +80,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'prefix_id' => array(
             'title' => ts('Prefix'),
           ),
+          'external_identifier' => array(
+            'title' => ts('External Identifier'),
+          ),
           'sort_name' => array(
             'title' => ts('Contact Name'),
             'no_repeat' => TRUE,
