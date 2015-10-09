@@ -250,21 +250,32 @@ function contributionrecur_civicrm_pageRun(&$page) {
 
 function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   // since this function gets called a lot, quickly determine if I care about the record being created
+  // watchdog('civicrm','hook_civicrm_pre for '.$objectName.' <pre>@params</pre>',array('@params' => print_r($params,TRUE)));
   switch($objectName) {
     case 'ContributionRecur':
+      if (!empty($params['payment_processor_id'])) {
+        $pp_id = $params['payment_processor_id'];
+        $class_name = _contributionrecur_pp_info($pp_id,'class_name');
+        // watchdog('civicrm','hook_civicrm_pre class name = <pre>'.print_r($class_name,TRUE).'</pre>');
+        if ('create' == $op && 'Payment_RecurOffline' == substr($class_name,0,20)) {
+          if (5 != $params['contribution_status_id'] && empty($params['next_sched_contribution_date'])) {
+            $params['contribution_status_id'] = 5;
+            // $params['trxn_id'] = NULL;
+            $next = strtotime('+'.$params['frequency_interval'].' '.$params['frequency_unit']);
+            $params['next_sched_contribution_date'] = date('YmdHis',$next);
+          }
+          if ('Payment_RecurOfflineACHEFT' == $class_name) {
+            $params['payment_instrument_id'] = 5;
+          }
+        }
+      }
       if (!empty($params['next_sched_contribution_date'])) {
-        // watchdog('_civicrm','hook_civicrm_pre for Contribution <pre>@params</pre>',array('@params' => print_r($params));
         $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
         $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
         if (0 < max($allow_days)) {
-          $from_time = _contributionrecur_next(strtotime($params['next_sched_contribution_date']),$allow_days);
-          $params['next_sched_contribution_date'] = date('Y-m-d H:i:s', $from_time);
-        }
-      }
-      if (!empty($params['payment_processor_id'])) {
-        $payment_type = _contributionrecur_payment_type($pp_id);
-        if (2 == $payment_type) {
-          $params['payment_instrument_id'] = 5;
+          $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
+          $from_time = _contributionrecur_next($init_time,$allow_days);
+          $params['next_sched_contribution_date'] = date('YmdHis', $from_time);
         }
       }
       break;
@@ -272,13 +283,44 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
       if (!empty($params['contribution_recur_id'])) {
         $pp_id = _contributionrecur_payment_processor_id($params['contribution_recur_id']);
         if ($pp_id) {
-          $payment_type = _contributionrecur_payment_type($pp_id);
-          if (2 == $payment_type) {
-            $params['payment_instrument_id'] = 5;
+          $class_name = _contributionrecur_pp_info($pp_id,'class_name');
+          if ('create' == $op && 'Payment_RecurOffline' == substr($class_name,0,20)) {
+            if ('Payment_RecurOfflineACHEFT' == $class_name) {
+              $params['payment_instrument_id'] = 5;
+            }
+            $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+            $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+            if (0 < max($allow_days)) {
+              $from_time = _contributionrecur_next(strtotime($params['receive_date']),$allow_days);
+              $params['receive_date'] = date('Ymd', $from_time).'030000';
+            }
           }
         }
       }
       break;
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_validateForm().
+ *
+ * Prevent server validation of cc fields for my dummy cc processor
+ *
+ * @param $formName - the name of the form
+ * @param $fields - Array of name value pairs for all 'POST'ed form values
+ * @param $files - Array of file properties as sent by PHP POST protocol
+ * @param $form - reference to the form object
+ * @param $errors - Reference to the errors array.
+ */
+function contributionrecur_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
+  if (isset($form->_paymentProcessor['class_name']) && $form->_paymentProcessor['class_name'] == 'Payment_RecurOffline') {
+    foreach(array('credit_card_number','cvv2') as $elementName) {
+      if ($form->elementExists($elementName)){
+        $element = $form->getElement($elementName);
+        $form->removeElement($elementName, true);
+        $form->addElement($element);
+      }
+    }
   }
 }
 
@@ -294,11 +336,11 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
     'return' => 'payment_processor_id'
   );
   $result = civicrm_api('ContributionRecur', 'getvalue', $params);
-  if (empty($result['result'])) {
+  if (empty($result)) {
     return FALSE;
     // TODO: log error
   }
-  return $result['result'];
+  return $result;
 }
 
 /* 
@@ -307,20 +349,22 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
  * I'm assuming that other type 2 processors take care of themselves,
  * but you could remove class_name to fix them also
  */
-function _contributionrecur_payment_type($payment_processor_id) {
+function _contributionrecur_pp_info($payment_processor_id, $return, $class_name = NULL) {
   $params = array(
     'version' => 3,
     'sequential' => 1,
     'id' => $payment_processor_id,
-    'class_name' => 'Payment_RecurOfflineACHEFT',
-    'return' => 'payment_type'
+    'return' => $return
   );
+  if (!empty($class_name)) {
+    $params['class_name'] = $class_name;
+  }
   $result = civicrm_api('PaymentProcessor', 'getvalue', $params);
-  if (empty($result['result'])) {
+  if (empty($result)) {
     return FALSE;
     // TODO: log error
   }
-  return $result['result'];
+  return $result;
 }
 
 /*
@@ -353,6 +397,18 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if (empty($form->_paymentProcessors)) {
     return;
   }
+  // if I'm using my dummy cc processor, modify the billing fields
+  $class_name = $form->_paymentProcessor['class_name'];
+  switch($class_name) {
+    case 'Payment_RecurOffline': // cc offline
+      $form->removeElement('credit_card_number',TRUE);
+      // unset($form->_paymentFields['credit_card_number']);
+      $form->addElement('text','credit_card_number',ts('Credit Card, last 4 digits'));
+      $form->removeElement('cvv2',TRUE);
+      unset($form->_paymentFields['cvv2']);
+      break; 
+  }
+
   if (empty($form->_elementIndex['is_recur'])) {
     return;
   }
@@ -373,6 +429,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if ((max($allow_days) > 0) || !empty($settings['force_recur'])) {
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
   }
+   
 }
 
 /* 
@@ -411,7 +468,7 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   }
   // turn off default notification checkbox, most will want to hide it as well.
   $defaults = array('is_notify' => 0);
-  $edit_fields = array('contribution_status_id', 'next_sched_contribution_date');
+  $edit_fields = array('contribution_status_id', 'next_sched_contribution_date','start_date');
   foreach($edit_fields as $fid) {
     $defaults[$fid] = $recur[$fid];
   }
@@ -419,6 +476,7 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   $contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus(NULL, 'name');
   $form->addElement('select', 'contribution_status_id', ts('Status'),$contributionStatus);
   $form->addDateTime('next_sched_contribution_date', ts('Next Scheduled Contribution'));
+  $form->addDateTime('start_date', ts('Start Date'));
   // $pp_id = $form->_paymentProcessor['id']; // get my pp
   // $processors = civicustom_civicrm_payment_processor_ids($crid);
   // $form->addElement('select', 'payment_processor_id', ts('Payment processor'),$processors);
@@ -428,6 +486,26 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
     'template' => 'CRM/Contributionrecur/Subscription.tpl',
   ));
   CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription.js');
+}
+
+/*
+ *  Provide edit link for cancelled recurring contributions, allowing uncancel
+ */
+function contributionrecur_CRM_Contribute_Form_Search(&$form) {
+  // ignore invocations that aren't for a specific contact, e.g. the civicontribute dashboard
+  if (empty($form->_defaultValues['contact_id'])) {
+    return;
+  }
+  $contactID = $form->_defaultValues['contact_id'];
+  $recur_edit_url = CRM_Utils_System::url('civicrm/contribute/updaterecur','reset=1&action=update&context=contribution&cid='.$contactID.'&crid=');
+  if (version_compare($version, '4.5') < 0) { /// support 4.4!
+    // a hackish way to inject these links into the form, they are displayed nicely using some javascript
+    $form->addElement('hidden','recur_edit_url', $recur_edit_url);
+  }
+  else { // the new and better way as of 4.5
+    contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
+    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription_uncancel.js');
+  }
 }
 
 /*
@@ -456,6 +534,13 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
   ));
   CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription_view.js');
 }
+
+/*
+ * Add js to the summary page so it can be used on the financial/contribution tab */
+function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
+  CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription_uncancel.js', 10, 'page-footer');
+} 
+
 
 function _contributionrecur_get_iats_extra($recur) {
   if (empty($recur['id']) && empty($recur['invoice_id'])) {

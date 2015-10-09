@@ -5,7 +5,6 @@
 
 cj(function ($) {
   'use strict';
-  console.log('test');
   $('table.crm-info-panel').append($('#contributionrecur-extra tr'));
 });
 

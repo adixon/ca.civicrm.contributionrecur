@@ -7,6 +7,8 @@
         <td class="content">{$form.contribution_status_id.html}</td></tr>
 <tr><td class="label">{$form.payment_processor_id.label}</td>
         <td class="content">{$form.payment_processor_id.html}</td></tr>
+<tr><td class="label">{$form.start_date.label}</td>
+        <td class="content">{$form.start_date.html}</td></tr>
 <tr><td class="label">{$form.next_sched_contribution_date.label}</td>
         <td class="content">{$form.next_sched_contribution_date.html}</td></tr>
 </table>
