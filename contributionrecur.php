@@ -472,16 +472,22 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   foreach($edit_fields as $fid) {
     $defaults[$fid] = $recur[$fid];
   }
+  // print_r($recur); die();
   $form->addElement('static','contact',$contact['display_name']);
+  // $form->addElement('static','contact',$contact['display_name']);
   $contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus(NULL, 'name');
   $form->addElement('select', 'contribution_status_id', ts('Status'),$contributionStatus);
   $form->addDateTime('next_sched_contribution_date', ts('Next Scheduled Contribution'));
   $form->addDateTime('start_date', ts('Start Date'));
-  // $pp_id = $form->_paymentProcessor['id']; // get my pp
-  // $processors = civicustom_civicrm_payment_processor_ids($crid);
-  // $form->addElement('select', 'payment_processor_id', ts('Payment processor'),$processors);
-  // 'payment_processor_id' => $pp_id, 
   $form->setDefaults($defaults);
+  // now add some more fields for display only
+  $pp_label = $form->_paymentProcessor['name']; // get my pp
+  $form->addElement('static','payment_processor',$pp_label);
+  $label = CRM_Contribute_Pseudoconstant::financialType($recur['financial_type_id']);
+  $form->addElement('static','financial_type',$label);
+  $labels = CRM_Contribute_Pseudoconstant::paymentInstrument();
+  $label = $labels[$recur['payment_instrument_id']];
+  $form->addElement('static','payment_instrument',$label);
   CRM_Core_Region::instance('page-body')->add(array(
     'template' => 'CRM/Contributionrecur/Subscription.tpl',
   ));

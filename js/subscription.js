@@ -6,6 +6,6 @@
 cj(function ($) {
   'use strict';
   $('.crm-recurcontrib-form-block table').append($('#contributionrecur-extra tr'));
-  $('.crm-recurcontrib-form-block table').prepend($('#contributionrecur-contact tr'));
+  $('.crm-recurcontrib-form-block table').prepend($('#contributionrecur-info tr'));
 });
 
