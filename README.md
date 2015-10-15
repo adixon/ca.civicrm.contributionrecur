@@ -16,14 +16,16 @@ This extension provides a job that will identify recurring contributions that sh
 As an extra feature, you can configure the contribution type to switch type if an existing membership has already been paid up - allowing extra contributions to be deductible for example.
 
 The job has to be specially configured with at least two parameters:
-mapping=financial_type_id:membership_type_id:overflow_financial_type_id
-dateLimit=(something that strtotime can read)
+<code><br />mapping=financial_type_id:membership_type_id:overflow_financial_type_id
+<br />dateLimit=(something that strtotime can read)
+</code>
 
 The type_id's for the mapping can be multiple if you like, separated by commas.
 
 You can also add these two paramenters:
-<code>countLimit=(maximum number of contributions to process per job)
-<br />verbose=(if set, put a lot of debugging info into the job log)</code>
+<code><br />countLimit=(maximum number of contributions to process per job)
+<br />verbose=(if set, put a lot of debugging info into the job log)
+</code>
 
 You'll want to run this on a testing install and use the countLimit and verbose to take a look at what it's doing, before you set it up on a production install.
 
