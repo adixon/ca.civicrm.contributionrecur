@@ -33,7 +33,7 @@ You'll want to run this on a testing install and use the countLimit and verbose 
 
 ## Restrict recurring days option
 
-You can force recurring options to be limited to specific day(s) of the month. Configureable via a form accessible in the CiviContribute Admin menu. Note that this functionality is primitive - it only works when the the schedule is managed by CiviCRM (e.g. with iATS Payments), because all it does is push forward the next scheduled contribution to an allowed day when the schedule is first created. In the future, I hope that this feature can be implemented so that payment processors can override this behaviour appropriately.
+You can force recurring options to be limited to specific day(s) of the month. Configureable via a form accessible in the CiviContribute Admin menu. Note that this functionality is primitive - it only works when the the schedule is managed by CiviCRM (e.g. with iATS Payments, or with the dummy offline processors provided by this extension), because all it does is push forward the next scheduled contribution to an allowed day when the schedule is first created. In the future, I hope that this feature can be implemented so that payment processors can override this behaviour appropriately.
 
 ## Force recurring option on pages where it is available ##
 
