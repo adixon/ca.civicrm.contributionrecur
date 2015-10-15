@@ -53,7 +53,17 @@ While we're in there, this also turns notifications of changes off by default.
 
 ## Provide offline recurring dummy processors for both credit card and ACH/EFT ##
 
-These integrate with the restrict recurring days options above, for example.
+These integrate with the restrict recurring days options above, for example. 
+
+## Offline recurring contribution job ##
+
+You can use this with the dummy processors, or any other offline recurring contribution processors by configuring the job by processor id.
+
+It has two additional useful parameters:
+<code><pre>
+catchup = boolean, set it to 1 to catchup if you forgot to or were unable to run the recurring contributions on time.
+ignoremembership = boolean, set to 1 if you want to do your membership processing using the fancier job this extension provides.
+</pre></code>
 
 ## Edit cancelled recurring schedules ##
 
