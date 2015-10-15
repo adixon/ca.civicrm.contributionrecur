@@ -1,7 +1,7 @@
 ca.civicrm.contribution_recur
 =============================
 
-Useful extensions of recurring contribution functionality in CiviCRM. Particularly useful for larger installations, with some functions only available for some payment processors.
+Useful extensions of recurring contribution functionality in CiviCRM. Particularly useful for larger installations, with some functions only available for some payment processors. You'll want to go the configuration screen in Admin -> CiviContribute -> Recurring Contribution Settings after enabling it.
 
 ## Reports
 
