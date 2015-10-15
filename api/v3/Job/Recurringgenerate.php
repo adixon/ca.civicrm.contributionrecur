@@ -20,6 +20,14 @@ function _civicrm_api3_job_recurringgenerate_spec(&$spec) {
   $spec['contact_id'] = array(
     'title' => 'Contact id',
   );
+  $spec['catchup'] = array(
+    'title' => 'Process as if in the past to catch up.',
+    'api.required' => 0,
+  );
+  $spec['ignoremembership'] = array(
+    'title' => 'Ignore memberships',
+    'api.required' => 0,
+  );
 }
 
 /**
