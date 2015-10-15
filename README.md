@@ -31,13 +31,27 @@ You'll want to run this on a testing install and use the countLimit and verbose 
 
 You can force recurring options to be limited to specific day(s) of the month. Configureable via a form accessible in the CiviContribute Admin menu. Note that this functionality is primitive - it only works when the the schedule is managed by CiviCRM (e.g. with iATS Payments), because all it does is push forward the next scheduled contribution to an allowed day when the schedule is first created. In the future, I hope that this feature can be implemented so that payment processors can override this behaviour appropriately.
 
+## Force recurring option on pages where it is available ##
+
+As an option, for (all) contribution pages that offer a recurring option - make it required and don't display it as an option. In other words, don't try to do recurring and non-recurring on the same contribution pages.
+
 ## Edit/View more fields for a recurring contribution series (also known as a "Subscription").
 
 This is only wise for some payment processors (e.g. token based ones), so it's configurable and off by default. 
 
-Extra editable fields currently include: Next scheduled contribution, and Status.
+Extra editable fields currently include: Next scheduled contribution, Start date, and Status.
 
-When viewing a contribution, if you are using iATS as a payment processor, you can see the credit card expiry date, and last four digits of the card.
+Also display a few more of the fields for reference (contact name, financial type, payment processor).
+
+When viewing a contribution, if you are using iATS as a payment processor, you can also see the credit card expiry date, and last four digits of the card.
 
 While we're in there, this also turns notifications of changes off by default.
+
+## Provide offline recurring dummy processors for both credit card and ACH/EFT ##
+
+These integrate with the restrict recurring days options above, for example.
+
+## Edit cancelled recurring schedules ##
+
+Normally, once a schedule is cancelled, you can't uncancel it. In fact, the functionality for editing a cancelled schedule is still there, so this just gives you back the edit button which is now useful because you can edit the status. [functionality still in progress as of Oct 2015].
 
