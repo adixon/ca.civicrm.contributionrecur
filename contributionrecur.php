@@ -495,21 +495,14 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
 }
 
 /*
- *  Provide edit link for cancelled recurring contributions, allowing uncancel
- */
+ *  Provide edit link for cancelled recurring contributions, allowing uncancel */
 function contributionrecur_CRM_Contribute_Form_Search(&$form) {
-  // ignore invocations that aren't for a specific contact, e.g. the civicontribute dashboard
-  if (empty($form->_defaultValues['contact_id'])) {
-    return;
-  }
-  $contactID = $form->_defaultValues['contact_id'];
-  $recur_edit_url = CRM_Utils_System::url('civicrm/contribute/updaterecur','reset=1&action=update&context=contribution&cid='.$contactID.'&crid=');
+  $version = CRM_Utils_System::version();
   if (version_compare($version, '4.5') < 0) { /// support 4.4!
     // a hackish way to inject these links into the form, they are displayed nicely using some javascript
-    $form->addElement('hidden','recur_edit_url', $recur_edit_url);
+    // js provided by contribextra extension!
   }
   else { // the new and better way as of 4.5
-    contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription_uncancel.js');
   }
 }
@@ -544,7 +537,9 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
 /*
  * Add js to the summary page so it can be used on the financial/contribution tab */
 function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
-  CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription_uncancel.js', 10, 'page-footer');
+  $contactId = CRM_Utils_Request::retrieve('cid', 'Positive');
+  $recur_edit_url = CRM_Utils_System::url('civicrm/contribute/updaterecur','reset=1&action=update&context=contribution&cid='.$contactId.'&crid=');
+  contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
 } 
 
 
