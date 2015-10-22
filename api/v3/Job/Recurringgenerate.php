@@ -46,8 +46,11 @@ function civicrm_api3_job_recurringgenerate($params) {
       && empty($params['contact_id'])
       && empty($params['id'])
   ) return;
+  // same these two extra params and remove them from the params array
   $catchup = !empty($params['catchup']);
-  $domemberships = empty($params['ignorememberships']);
+  unset($params['catchup']);
+  $domemberships = empty($params['ignoremembership']);
+  unset($params['ignoremembership']);
   // running this job in parallell could generate bad duplicate contributions
   $lock = new CRM_Core_Lock('civimail.job.Recurringgenerate');
   $update = array();
