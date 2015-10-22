@@ -17,7 +17,7 @@ As an extra feature, you can configure it to generate matching/reversing contrib
 
 The job has to be specially configured with at least two parameters:
 <code><pre>
-mapping=financial_type_id:membership_type_id:overflow_financial_type_id
+mapping=financial_type_id:membership_type_id:membership_financial_type_id
 dateLimit=(something that strtotime can read)
 </pre></code>
 
