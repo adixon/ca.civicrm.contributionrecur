@@ -9,6 +9,7 @@ require_once 'CRM/Core/Form.php';
  */
 class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form {
   function buildQuickForm() {
+
     $this->add(
       'checkbox', // field type
       'edit_extra', // field name
@@ -19,12 +20,23 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       'force_recur', // field name
       ts('Force recurring-only option on pages that it is available.')
     );
+    // allow selection of activity type for implicit membership renewal 
+    $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 2, 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
+    $activity_types = array('0' => '-- none --');
+    foreach($result['values'] as $activity_type) {
+      $activity_types[$activity_type['value']] = $activity_type['label'];
+    }
+    $this->add(
+      'select', // field type
+      'activity_type_id', // field name
+      ts('Select an activity type for implicit membership renewals.'),
+      $activity_types
+    );
+
     $days = array('-1' => 'disabled');
     for ($i = 1; $i <= 28; $i++) {
       $days["$i"] = "$i";
     }
-    $result = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-    $defaults = (empty($result)) ? array('-1') : $result;
     $attr =  array('size' => 29,
          'style' => 'width:150px',
          'required' => FALSE);
@@ -46,6 +58,8 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
         'isDefault' => TRUE,
       ),
     ));
+    $result = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+    $defaults = (empty($result)) ? array('-1') : $result;
     $this->setDefaults($defaults);
 
     // export form elements
