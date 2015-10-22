@@ -16,7 +16,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
   $contact_id = $contact['contact_id'];
   // print_r($membership_types);
   // only proceed if this contact has exactly one membership of the right kind and status (grace or lapsed)
-  $p = array('contact_id' => $contact_id, 'status_id' => array('IN' => array(3,4)), 'membership_type_id' => array('IN' => array_keys($membership_types)));
+  $p = array('contact_id' => $contact_id, 'status_id' => array('IN' => array(1,3,4)), 'membership_type_id' => array('IN' => array_keys($membership_types)));
   try{
     $membership = civicrm_api3('Membership', 'getsingle', $p);
     $membership_type = $membership_types[$membership['membership_type_id']];
@@ -54,17 +54,19 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
     foreach($applied_contributions as $contribution) {
       civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
     }
-    civicrm_api3('Activity', 'create',
-      array(
+    $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+    $activity_type_id = $settings['activity_type_id'];
+    if ($activity_type_id > 0) {
+      civicrm_api3('Activity', 'create', array(
         'version'       => 3,
-        'activity_type_id'  => 34,
+        'activity_type_id'  => $activity_type_id,
         'source_contact_id'   => $contact_id,
-        'source_record_id' => $membership['id'],
+        /* 'source_record_id' => $membership['id'], */
         'subject'       => "Applied unallocated contributions to membership using implicit membership from contributions rule.",
         'status_id'       => 2,
-        'activity_date_time'  => date("YmdHis"),
-      )
-    );
+        'activity_date_time'  => date("YmdHis"),)
+      );
+    }
     $return[] = 'Updated membership '.$membership['id'];
   }
   catch (CiviCRM_API3_Exception $e) {
