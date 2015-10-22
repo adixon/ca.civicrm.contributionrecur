@@ -313,12 +313,23 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
  * @param $errors - Reference to the errors array.
  */
 function contributionrecur_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
-  if (isset($form->_paymentProcessor['class_name']) && $form->_paymentProcessor['class_name'] == 'Payment_RecurOffline') {
-    foreach(array('credit_card_number','cvv2') as $elementName) {
-      if ($form->elementExists($elementName)){
-        $element = $form->getElement($elementName);
-        $form->removeElement($elementName, true);
-        $form->addElement($element);
+  if (isset($form->_paymentProcessor['class_name'])) {
+    if ($form->_paymentProcessor['class_name'] == 'Payment_RecurOffline') {
+      foreach(array('credit_card_number','cvv2') as $elementName) {
+        if ($form->elementExists($elementName)){
+          $element = $form->getElement($elementName);
+          $form->removeElement($elementName, true);
+          $form->addElement($element);
+        }
+      }
+    }
+    elseif ($form->_paymentProcessor['class_name'] == 'Payment_RecurOfflineACHEFT') {
+      foreach(array('account_holder','bank_account_number','bank_identification_number','bank_name') as $elementName) {
+        if ($form->elementExists($elementName)){
+          $element = $form->getElement($elementName);
+          $form->removeElement($elementName, true);
+          $form->addElement($element);
+        }
       }
     }
   }
