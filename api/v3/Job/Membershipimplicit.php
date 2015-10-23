@@ -57,7 +57,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
   // throw new CRM_Core_Exception(ts('Date: '.$dl));
   $maps = explode(';',$maps);
   foreach($maps as $map) {
-    list($ftype_ids,$mtype_ids,$convert_ftype_id) = explode(':',$map,3);
+    list($ftype_ids,$mtype_ids,$membership_ftype_id) = explode(':',$map,3);
     $f = explode(',',$ftype_ids); 
     $clean = array();
     foreach($f as $id) {
@@ -82,13 +82,13 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
     }
     $mtype_ids = $clean;
 
-    if (!empty($convert_ftype_id)) {
-      $id = $convert_ftype_id;
+    if (!empty($membership_ftype_id)) {
+      $id = $membership_ftype_id;
       if (!is_numeric($id)) {
-        throw new CRM_Core_Exception(ts('Invalid syntax: '.$convert_ftype_id));
+        throw new CRM_Core_Exception(ts('Invalid syntax: '.$membership_ftype_id));
       }
       else {
-        $convert_ftype_id = (integer) $id;
+        $membership_ftype_id = (integer) $id;
       } 
     }      
 
@@ -124,7 +124,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
       }
       include 'CRM/Contributionrecur/MembershipImplicit.php';
       foreach($contacts as $contact_id => $contributions) {
-        $results[] = contributionrecur_membershipImplicit(array('contact_id' => $contact_id), $contributions, $membership_types, $convert_ftype_id);
+        $results[] = contributionrecur_membershipImplicit(array('contact_id' => $contact_id), $contributions, $membership_types, $membership_ftype_id);
       }
     }
   }
