@@ -29,6 +29,10 @@ function _civicrm_api3_job_membershipimplicit_spec(&$spec) {
     'title' => 'Limit to this many contributions to process.',
     'api.required' => 0,
   );
+  $spec['contribution_status'] = array(
+    'title' => 'Process contributions of this status',
+    'api.required' => 0,
+  );
   $spec['verbose'] = array(
     'title' => 'Report verbosely.',
     'api.required' => 0,
@@ -53,6 +57,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
   $dateLimit = $params['dateLimit'];
   $countLimit = empty($params['countLimit']) ? '' : ' LIMIT '.((int)$params['countLimit']);
   $verbose = empty($params['verbose']) ? FALSE : TRUE;
+  $contribution_status = empty($params['contribution_status']) ? 1 : ((int) $params['contribution_status']);
   $dl = date('Y-m-d',strtotime($dateLimit));
   // throw new CRM_Core_Exception(ts('Date: '.$dl));
   $maps = explode(';',$maps);
@@ -91,8 +96,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         $membership_ftype_id = (integer) $id;
       } 
     }      
-
-    $sql = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount FROM civicrm_contribution c LEFT JOIN civicrm_membership_payment p ON c.id = p.contribution_id WHERE ISNULL(p.membership_id) AND (c.receive_date > '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id = 1) AND (c.contribution_recur_id > 0) ORDER BY contact_id, receive_date".$countLimit;
+    $sql = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount FROM civicrm_contribution c LEFT JOIN civicrm_membership_payment p ON c.id = p.contribution_id WHERE ISNULL(p.membership_id) AND (c.receive_date > '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id = $contribution_status) AND (c.contribution_recur_id > 0) ORDER BY contact_id, receive_date".$countLimit;
     $dao = CRM_Core_DAO::executeQuery($sql);
     $contacts = array();
     while($dao->fetch()) {
