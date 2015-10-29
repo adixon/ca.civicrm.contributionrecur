@@ -18,9 +18,8 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
   $return[] = $contributions;
   // watchdog('contributionrecur','running membership implicit function for '.$contact['contact_id'].', '.$op.', <pre>@params</pre>',array('@params' => print_r($params, TRUE)));
   $contact_id = $contact['contact_id'];
-  // print_r($membership_types);
-  // only proceed if this contact has exactly one membership of the right kind and status (grace or lapsed)
-  $p = array('contact_id' => $contact_id, 'status_id' => array('IN' => array(3,4)), 'membership_type_id' => array('IN' => array_keys($membership_types)));
+  // only proceed if this contact has exactly one membership of the right kind and status (some kind of active or expired)
+  $p = array('contact_id' => $contact_id, 'status_id' => array('IN' => array(1,2,3,4)), 'membership_type_id' => array('IN' => array_keys($membership_types)));
   try{
     $membership = civicrm_api3('Membership', 'getsingle', $p);
     $membership_type = $membership_types[$membership['membership_type_id']];
@@ -32,27 +31,31 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
       $total_amount += $contribution['total_amount'];
       $start_date = max($start_date,$contribution['receive_date']);
       $applied_contributions[] = $contribution;
-    } while (
-      (empty($membership_financial_type_id) || ($total_amount < floatval($membership_type['minimum_fee'])))
+    } while ( // i.e. unless I'm going to worry about applying these contributions to a grace or expired membership and convert to a different contact type
+      (empty($membership_financial_type_id) || ($membership['status_id'] < 3) || ($total_amount < floatval($membership_type['minimum_fee'])))
        && count($contributions)
     );
-    // are contributions enough to renew the membership?
-    if ($total_amount < $membership_type['minimum_fee']) {
+    // are contributions not enough to renew an expired/grace membership? Quit ..
+    if (($total_amount < $membership_type['minimum_fee']) && ($membership['status_id'] > 2)) {
       return array('Total amount < minimum fee');
     }
-    // figure out start and end dates of the membership and update it
-    // $start_date = date('Y-m-d'); 
-    $updated_membership = array('contact_id' => $contact_id, 'id' => $membership['id']);
-    $dates = CRM_Member_BAO_MembershipType::getRenewalDatesForMembershipType($membership['id'],date('YmdHis',strtotime($start_date)),$membership['membership_type_id'],1);
-    $updated_membership['start_date'] = CRM_Utils_Array::value('start_date', $dates);
-    $updated_membership['end_date'] = CRM_Utils_Array::value('end_date', $dates);
-    $updated_membership['source'] = ts('Auto-renewed membership from contribution of implicit membership type');
-    $updated_membership['status_id'] = 2; // always set to current now
-    civicrm_api3('Membership','create',$updated_membership);
+    // for a grace/expired membership, figure out start and end dates of the membership and update it
+    if ($membership['status_id'] > 2) {
+      // $start_date = date('Y-m-d'); 
+      $updated_membership = array('contact_id' => $contact_id, 'id' => $membership['id']);
+      $dates = CRM_Member_BAO_MembershipType::getRenewalDatesForMembershipType($membership['id'],date('YmdHis',strtotime($start_date)),$membership['membership_type_id'],1);
+      $updated_membership['start_date'] = CRM_Utils_Array::value('start_date', $dates);
+      $updated_membership['end_date'] = CRM_Utils_Array::value('end_date', $dates);
+      $updated_membership['source'] = ts('Auto-renewed membership from contribution of implicit membership type');
+      $updated_membership['status_id'] = 2; // always set to current now
+      civicrm_api3('Membership','create',$updated_membership);
+    }
 
     // now assign all the applied contributions to this membership
     foreach($applied_contributions as $contribution) {
-      civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
+      if (empty($contribution['applied'])) {
+        civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
+      }
     }
     // see if we need/can convert some of these to membership contributions, and then generate reversing contributions for the rest
     if (!empty($membership_financial_type_id)) {
