@@ -58,7 +58,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
       }
     }
     // see if we need/can convert some of these to membership contributions, and then generate reversing contributions for the rest
-    if (!empty($membership_financial_type_id)) {
+    if (!empty($membership_financial_type_id) && ($membership['status_id'] > 2)) {
       $membership_amount = $membership_type['minimum_fee'];
       // save some details from my last contribution
       $last_contribution = end($applied_contributions);
@@ -69,7 +69,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
           try {
             civicrm_api3('Contribution', 'create', $p);
             $membership_amount = $membership_amount - $contribution['total_amount'];
-            unset($applied_contributions[$i]);
+            // unset($applied_contributions[$i]);
             $return[] = 'Converted contribution '. $contribution['id'] .' of contact id '. $contact_id .' to financial type id '. $membership_financial_type_id;
           }
           catch (CiviCRM_API3_Exception $e) {
@@ -105,6 +105,8 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
         try {
           civicrm_api3('Contribution', 'create', $membership_contribution);
           civicrm_api3('Contribution', 'create', $reversal_contribution);
+          civicrm_api3('MembershipPayment','create', array('contribution_id' => $membership_contribution['id'], 'membership_id' => $membership['id']));
+          civicrm_api3('MembershipPayment','create', array('contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']));
           $return[] = 'Created membership and reversal contributions for contact id '. $contact_id;
         }
         catch (CiviCRM_API3_Exception $e) {
