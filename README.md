@@ -13,11 +13,11 @@ Memberships tied to recurring contributions have issues. You would expect a cont
 
 This extension provides a job that will identify recurring contributions that should be associated with a membership but aren't, and try to apply them appropriately.
 
-As an extra feature, you can configure the contribution type to switch type if an existing membership has already been paid up - allowing extra contributions to be deductible for example.
+As an extra feature, you can configure it to generate matching/reversing contributions of a different type for the membership portion allowing extra contributions to be deductible for example.
 
 The job has to be specially configured with at least two parameters:
 <code><pre>
-mapping=financial_type_id:membership_type_id:overflow_financial_type_id
+mapping=financial_type_id:membership_type_id:membership_financial_type_id
 dateLimit=(something that strtotime can read)
 </pre></code>
 
