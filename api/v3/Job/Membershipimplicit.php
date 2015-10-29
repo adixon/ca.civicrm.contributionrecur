@@ -113,17 +113,17 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         $contacts[$dao->contact_id] = array();
       } 
       // use the contribution id as a key to order them as input
-      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao-->contribution_status_id);
+      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao-->contribution_status_id, 'applied' => 0);
     }
     // also deal with the possibility that the membership_payment records got created but no membership renewal happened
-    $sql_m = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_membership_payment p ON c.id = p.contribution_id INNER JOIN civicrm_membership m ON p.membership_id = m.id WHERE (m.status_id != 1) AND (c.receive_date >= '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id = 1) AND (c.contribution_recur_id > 0) ORDER BY contact_id, receive_date".$countLimit;
+    $sql_m = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_membership_payment p ON c.id = p.contribution_id INNER JOIN civicrm_membership m ON p.membership_id = m.id WHERE (m.status_id > 2) AND (c.receive_date >= '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id = 1) AND (c.contribution_recur_id > 0) ORDER BY contact_id, receive_date".$countLimit;
     $dao = CRM_Core_DAO::executeQuery($sql_m);
     while($dao->fetch()) {
       if (empty($contacts[$dao->contact_id])) {
         $contacts[$dao->contact_id] = array();
       } 
       // use the contribution id as a key to order them as input
-      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao->contribution_status_id);
+      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao->contribution_status_id, 'applied' => 1);
     }
   } 
   $results = array();
