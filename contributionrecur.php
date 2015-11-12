@@ -278,6 +278,9 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
           $params['next_sched_contribution_date'] = date('YmdHis', $from_time);
         }
       }
+      if (empty($params['installments'])) {
+        $params['installments'] = '0';
+      }
       break;
     case 'Contribution':
       if (!empty($params['contribution_recur_id'])) {
