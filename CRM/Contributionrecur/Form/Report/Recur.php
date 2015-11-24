@@ -53,7 +53,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       self::$contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus();
     }
     else {
-      self::$prefixes =  CRM_Contact_BAO_Contact::buildOptions('individual_prefix_id');
+      self::$prefixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id');
       self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
     }
       
