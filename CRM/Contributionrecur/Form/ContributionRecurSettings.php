@@ -43,7 +43,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     $day_select = $this->add(
       'select', // field type
       'days', // field name
-      ts('Restrict allowable days of the month for recurring contributions.'),
+      ts('Restrict allowable days of the month for recurring contributions (with one of my offline-processors only!).'),
       $days,
       FALSE,
       $attr
