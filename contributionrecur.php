@@ -405,6 +405,27 @@ function _contributionrecur_next($from_time, $allow_mdays) {
 }
 
 /*
+ * hook_civicrm_buildForm for back-end contribution forms
+ *
+ * Allow editing of contribution amounts!
+ */
+function contributionrecur_CRM_Contribute_Form_Contribution(&$form) {
+  // ignore this form unless I'm editing an contribution from my offline payment processor
+  if (empty($form->_values['contribution_recur_id'])) {
+    return;
+  }
+  $recur_id = $form->_values['contribution_recur_id'];
+  $pp_id = _contributionrecur_payment_processor_id($recur_id);
+  if ($pp_id) {
+    $class_name = _contributionrecur_pp_info($pp_id,'class_name');
+    if ('Payment_RecurOffline' == substr($class_name,0,20)) {
+      $form->getElement('fee_amount')->unfreeze();
+      $form->getElement('net_amount')->unfreeze();
+    }
+  }
+}
+
+/*
  * hook_civicrm_buildForm for public ("front-end") contribution forms
  *
  * Force recurring if it's an option on this form and configured in the settings
