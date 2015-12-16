@@ -244,6 +244,8 @@ function contributionrecur_civicrm_pageRun(&$page) {
 /*
  * hook_civicrm_pre
  *
+ * Intervene before recurring contribution records are created or edited, but only for my dummy processors.
+ *
  * If the recurring days restriction settings are configured, then push the next scheduled contribution date forward to the first allowable one.
  * TODO: should there be cases where the next scheduled contribution is pulled forward? E.g. if it's still the next month and at least 15 days?
  */
@@ -257,25 +259,27 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
         // watchdog('civicrm','hook_civicrm_pre class name = <pre>'.print_r($class_name,TRUE).'</pre>');
-        if ('create' == $op && 'Payment_RecurOffline' == substr($class_name,0,20)) {
-          if (5 != $params['contribution_status_id'] && empty($params['next_sched_contribution_date'])) {
-            $params['contribution_status_id'] = 5;
-            // $params['trxn_id'] = NULL;
-            $next = strtotime('+'.$params['frequency_interval'].' '.$params['frequency_unit']);
-            $params['next_sched_contribution_date'] = date('YmdHis',$next);
+        if ('Payment_RecurOffline' == substr($class_name,0,20)) {
+          if ('create' == $op) {
+            if (5 != $params['contribution_status_id'] && empty($params['next_sched_contribution_date'])) {
+              $params['contribution_status_id'] = 5;
+              // $params['trxn_id'] = NULL;
+              $next = strtotime('+'.$params['frequency_interval'].' '.$params['frequency_unit']);
+              $params['next_sched_contribution_date'] = date('YmdHis',$next);
+            }
+            if ('Payment_RecurOfflineACHEFT' == $class_name) {
+              $params['payment_instrument_id'] = 5;
+            }
           }
-          if ('Payment_RecurOfflineACHEFT' == $class_name) {
-            $params['payment_instrument_id'] = 5;
+          if (!empty($params['next_sched_contribution_date'])) {
+            $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+            $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+            if (0 < max($allow_days)) {
+              $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
+              $from_time = _contributionrecur_next($init_time,$allow_days);
+              $params['next_sched_contribution_date'] = date('YmdHis', $from_time);
+            }
           }
-        }
-      }
-      if (!empty($params['next_sched_contribution_date'])) {
-        $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-        $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
-        if (0 < max($allow_days)) {
-          $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
-          $from_time = _contributionrecur_next($init_time,$allow_days);
-          $params['next_sched_contribution_date'] = date('YmdHis', $from_time);
         }
       }
       if (empty($params['installments'])) {
