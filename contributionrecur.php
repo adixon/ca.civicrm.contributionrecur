@@ -558,15 +558,12 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
-  // show iats custom codes table data, if available
-  $extra = _contributionrecur_get_iats_extra($recur);
-  if (empty($extra)) {
-    return;
-  }
+  // add the 'generate ad hoc contribution form' link
   $template = CRM_Core_Smarty::singleton();
-  foreach($extra as $key => $value) {
-    $template->assign($key, $value);
-  }
+  $adHocContributionLink = CRM_Utils_System::url('civicrm/contact/contributionrecur_adhoc', 'reset=1&cid='.$recur['contact_id'].'&paymentProcessorId='.$recur['payment_processor_id'].'&crid='.$crid.'&is_test='.$recur['is_test']);
+  $template->assign('adHocContributionLink', 
+    '<a href="'.$adHocContributionLink.'">Generate</a>'
+  );
   CRM_Core_Region::instance('page-body')->add(array(
     'template' => 'CRM/Contributionrecur/ContributionRecur.tpl',
   ));
