@@ -255,6 +255,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   // watchdog('civicrm','hook_civicrm_pre for '.$objectName.' <pre>@params</pre>',array('@params' => print_r($params,TRUE)));
   switch($objectName) {
     case 'ContributionRecur':
+      $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
       if (!empty($params['payment_processor_id'])) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
@@ -272,7 +273,6 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
             }
           }
           if (!empty($params['next_sched_contribution_date'])) {
-            $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
             $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
             if (0 < max($allow_days)) {
               $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
@@ -284,6 +284,9 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
       }
       if (empty($params['installments'])) {
         $params['installments'] = '0';
+      }
+      if (!empty($settings['no_receipts'])) {
+        $params['is_email_receipt'] = 0;
       }
       break;
     case 'Contribution':

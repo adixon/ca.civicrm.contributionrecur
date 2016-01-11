@@ -17,6 +17,11 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     );
     $this->add(
       'checkbox', // field type
+      'no_receipts', // field name
+      ts('Prevent all receipts for recurring contributions.')
+    );
+    $this->add(
+      'checkbox', // field type
       'force_recur', // field name
       ts('Force recurring-only option on pages that it is available.')
     );
