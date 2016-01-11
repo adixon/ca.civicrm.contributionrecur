@@ -162,6 +162,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'cycle_day'  => array(
             'title' => ts('Cycle Day'),
           ),
+          'failure_count'  => array(
+            'title' => ts('Failure Count'),
+          ),
           'payment_processor_id' => array(
             'title' => ts('Payment Processor'),
           ),
@@ -283,6 +286,11 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
           'cycle_day' => array(
             'title' => ts('Cycle Day'),
+            'operatorType' => CRM_Report_Form::OP_INT,
+            'type' => CRM_Utils_Type::T_INT,
+          ),
+          'failure_count' => array(
+            'title' => ts('Failure Count'),
             'operatorType' => CRM_Report_Form::OP_INT,
             'type' => CRM_Utils_Type::T_INT,
           ),
