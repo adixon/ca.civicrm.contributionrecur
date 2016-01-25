@@ -132,12 +132,20 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
               'sum' => ts("Total Amount contributed")
             ),
           ),
+          'receive_date' => array(
+            'no_display' => TRUE,
+          ),
         ),
         'filters' => array(
           'total_amount' => array(
             'title' => ts('Total Amount'),
             'operatorType' => CRM_Report_Form::OP_FLOAT,
             'type' => CRM_Utils_Type::T_FLOAT,
+          ),
+          'receive_date' => array(
+            'title' => ts('Receive Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'type' => CRM_Utils_Type::T_DATE,
           ),
         ),
       ),
