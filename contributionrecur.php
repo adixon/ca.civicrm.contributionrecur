@@ -597,6 +597,19 @@ function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
   contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
 } 
 
+/**
+ * Implement hook_civicrm_searchTasks()
+ *
+ * Enable a simpler completion of pending contributions without sending emails, etc.
+ */
+function contributionrecur_civicrm_searchTasks($objectType, &$tasks ) {
+  if ( $objectType == 'contribution' && CRM_Core_Permission::check('edit contributions')) {
+    $tasks[] = array (
+      'title' => ts('Convert Pending Contributions to Completed', array('domain' => 'ca.civicrm.contributionrecur')),
+      'class' => 'CRM_Contributionrecur_Task_CompletePending',
+      'result' => TRUE);
+  }
+}
 
 function _contributionrecur_get_iats_extra($recur) {
   if (empty($recur['id']) && empty($recur['invoice_id'])) {
