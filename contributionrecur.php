@@ -605,7 +605,7 @@ function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
 function contributionrecur_civicrm_searchTasks($objectType, &$tasks ) {
   if ( $objectType == 'contribution' && CRM_Core_Permission::check('edit contributions')) {
     $tasks[] = array (
-      'title' => ts('Convert Pending Contributions to Completed', array('domain' => 'ca.civicrm.contributionrecur')),
+      'title' => ts('Convert Pending Offline Contributions to Completed', array('domain' => 'ca.civicrm.contributionrecur')),
       'class' => 'CRM_Contributionrecur_Task_CompletePending',
       'result' => TRUE);
   }
