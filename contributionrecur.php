@@ -609,6 +609,12 @@ function contributionrecur_civicrm_searchTasks($objectType, &$tasks ) {
       'class' => 'CRM_Contributionrecur_Task_CompletePending',
       'result' => TRUE);
   }
+  elseif ( $objectType == 'contact' && CRM_Core_Permission::check('edit contributions')) {
+    $tasks[] = array (
+      'title' => ts('Generate Reversing Membership Payments', array('domain' => 'ca.civicrm.contributionrecur')),
+      'class' => 'CRM_Contributionrecur_Task_MembershipPayments',
+      'result' => TRUE);
+  }
 }
 
 function _contributionrecur_get_iats_extra($recur) {
