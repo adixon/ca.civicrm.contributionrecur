@@ -26,7 +26,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       ts('Force recurring-only option on pages that it is available.')
     );
     // allow selection of activity type for implicit membership renewal 
-    $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 2, 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
+    $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
     $activity_types = array('0' => '-- none --');
     foreach($result['values'] as $activity_type) {
       $activity_types[$activity_type['value']] = $activity_type['label'];
