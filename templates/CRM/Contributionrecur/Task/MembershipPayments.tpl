@@ -15,6 +15,10 @@
     <div class="content">{$form.membership_type_id.html}</div>
   </div>
   <div class="crm-section">
+    <div class="label">{$form.amount.label}</div>
+    <div class="content">{$form.amount.html}</div>
+  </div>
+  <div class="crm-section">
     <div class="label">{$form.receive_date.label}</div>
     <div class="content">{include file="CRM/common/jcalendar.tpl" elementName=receive_date}</div>
   </div>

@@ -77,6 +77,11 @@ AND    {$this->_componentClause}";
     $this->addElement('select','membership_ft_id',ts('Membership Financial Type (to)'),$financial_types);
     $this->addElement('select','donation_ft_id',ts('Donation Financial Type (from)'),$financial_types);
     $this->addElement('select','membership_type_id',ts('Membership Type'),$membership_types);
+    $this->addMoney(
+      'amount', // field name
+      'Amount', // field label
+      TRUE, NULL, FALSE
+    );
     $this->addDateTime('receive_date', ts('Received'), FALSE, array('formatType' => 'activityDateTime'));
     $this->addButtons(array(
         array(
@@ -106,7 +111,6 @@ AND    {$this->_componentClause}";
     $values = $this->exportValues();
     //print_r($values);
     //print_r($this->_rows);
-    $membership_type = civicrm_api3('MembershipType', 'getsingle', array('sequential' => 1, 'id' => $values['membership_type_id']));
     // print_r($membership_type); die();
     foreach ($this->_contactIds as $contact_id) {
       try {
@@ -129,7 +133,7 @@ AND    {$this->_componentClause}";
           'version'        => 3,
           'contact_id'       => $contact_id,
           'receive_date'       => $values['receive_date'],
-          'total_amount'       => $membership_type['minimum_fee'],
+          'total_amount'       => $values['amount'],
           'payment_instrument_id'  => $contribution['payment_instrument_id'],
           'contribution_recur_id'  => $contribution['contribution_recur_id'],
           'trxn_id'        => $hash, /* placeholder: just something unique that can also be seen as the same as invoice_id */
