@@ -25,7 +25,7 @@ class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
    *
    * @return void
    */
-  function __construct($mode, &$paymentProcessor) {
+  public function __construct($mode, &$paymentProcessor) {
     $this->_mode = $mode;
     $this->_paymentProcessor = $paymentProcessor;
     $this->_processorName = ts('Recurring Offline Placeholder Processor');
@@ -74,6 +74,15 @@ class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
     }
     $params['gross_amount'] = $params['amount'];
     return $params;
+  }
+
+  /** 
+   * Are back office payments supported.
+   *
+   * @return bool
+   */
+  protected function supportsBackOffice() {
+    return TRUE;
   }
 
   function &error($errorCode = NULL, $errorMessage = NULL) {

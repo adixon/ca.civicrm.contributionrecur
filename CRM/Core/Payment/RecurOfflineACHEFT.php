@@ -25,7 +25,7 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
    *
    * @return void
    */
-  function __construct($mode, &$paymentProcessor) {
+  public function __construct($mode, &$paymentProcessor) {
     $this->_mode = $mode;
     $this->_paymentProcessor = $paymentProcessor;
     $this->_processorName = ts('Recurring Offline ACH/EFT Placeholder Processor');
@@ -74,7 +74,17 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
       $params['trxn_id'] = sprintf('live_%08d', $trxn_id);
     }
     $params['gross_amount'] = $params['amount'];
+    $params['payment_status_id'] = 1;
     return $params;
+  }
+
+  /** 
+   * Are back office payments supported.
+   *
+   * @return bool
+   */
+  protected function supportsBackOffice() {
+    return TRUE;
   }
 
   function &error($errorCode = NULL, $errorMessage = NULL) {
