@@ -15,8 +15,10 @@ cj(function ($) {
       e.stopPropagation();
     });
   }
-  if (recurSettings.nextDate.length > 0) {
-    $('.is_recur-section .content').append('<div class="description">'+ts('Your first contribution date will be %1.', {1:recurSettings.nextDate})+'</div>');
+  if ("undefined" != typeof recurSettings.nextDate) {
+    if (recurSettings.nextDate.length > 0) {
+      $('.is_recur-section .content').append('<div class="description">'+ts('Your first contribution date will be %1.', {1:recurSettings.nextDate})+'</div>');
+    }
   }
 });
 
