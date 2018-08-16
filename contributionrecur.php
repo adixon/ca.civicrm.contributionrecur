@@ -462,6 +462,11 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
     contributionrecur_civicrm_varset(array('forceRecur' => '1'));
   }
+  elseif (!empty($settings['nice_recur'])) {
+    CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
+    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
+    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
+  }
   // if the site administrator has resticted the recurring days
   $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
   if (max($allow_days) > 0) {

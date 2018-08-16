@@ -25,6 +25,11 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       'force_recur', // field name
       ts('Force recurring-only option on pages that it is available.')
     );
+    $this->add(
+      'checkbox', // field type
+      'nice_recur', // field name
+      ts('Add a nice js-based recurring/non-recurring switcher.')
+    );
     // allow selection of activity type for implicit membership renewal 
     $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
     $activity_types = array('0' => '-- none --');

@@ -1,0 +1,28 @@
+/* customization for front end donation forms, some */
+.gift-type-select div {
+  width: 45%;
+  margin-right: 3px;
+  float: left;
+}
+div.crm-container .gift-type-select label {
+  display: block;
+  font-weight: bold;
+  text-align: center;
+  padding: 16px 16px; 
+  font-size: 20px;
+  font-variant: small-caps;
+  cursor: pointer;
+  border: 1px solid #00ABB4;
+}
+
+.gift-type-select div:hover,
+.gift-type-select div.selected {
+  background-color: #00ABB4;
+  color: #FFF;
+}
+
+.gift-type-select:after {
+  content: "";
+  display: table;
+  clear: both;
+}
