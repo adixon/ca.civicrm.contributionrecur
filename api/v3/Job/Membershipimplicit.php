@@ -1,6 +1,6 @@
 <?php
 /**
- * This job finds all recurring contributions of a specific type(s) that are not already linked to a membership
+ * This job finds all contributions of a specific type(s) that are not already linked to a membership
  * And applies it to the first membership of a specific type(s).
  *
  * Useful as a workaround for civicrm 4.4 and 4.5 issues relatd to recurring contributions and memberships
@@ -37,6 +37,14 @@ function _civicrm_api3_job_membershipimplicit_spec(&$spec) {
     'title' => 'Report verbosely.',
     'api.required' => 0,
   );
+  $spec['create'] = array(
+    'title' => 'Create new memberships of this type id, if none exist.',
+    'api.required' => 0,
+  );
+  $spec['simulate'] = array(
+    'title' => 'Simulate.',
+    'api.required' => 0,
+  );
 
 }
 
@@ -57,6 +65,8 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
   $dateLimit = $params['dateLimit'];
   $countLimit = empty($params['countLimit']) ? '' : ' LIMIT '.((int)$params['countLimit']);
   $verbose = empty($params['verbose']) ? FALSE : TRUE;
+  $create_new_membership_type_id = empty($params['create']) ? FALSE : ((int) $params['create']);
+  $simulate = empty($params['simulate']) ? FALSE : TRUE;
   if (empty($params['contribution_status'])) {
     $contribution_status = 1;
   }
@@ -105,7 +115,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         $membership_ftype_id = (integer) $id;
       } 
     }      
-    $sql = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c LEFT JOIN civicrm_membership_payment p ON c.id = p.contribution_id WHERE ISNULL(p.membership_id) AND (c.receive_date >= '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id IN ($contribution_status)) AND (c.contribution_recur_id > 0) ORDER BY contact_id, receive_date".$countLimit;
+    $sql = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_line_item l ON c.id = l.contribution_id LEFT JOIN civicrm_membership_payment p ON c.id = p.contribution_id WHERE ISNULL(p.membership_id) AND (c.is_test = 0) AND (c.receive_date >= '$dl') AND (l.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id IN ($contribution_status)) ORDER BY contact_id, receive_date".$countLimit;
     $dao = CRM_Core_DAO::executeQuery($sql);
     $contacts = array();
     while($dao->fetch()) {
@@ -116,7 +126,8 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
       $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao-->contribution_status_id, 'applied' => 0);
     }
     // also deal with the possibility that the membership_payment records got created but no membership renewal happened
-    $sql_m = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_membership_payment p ON c.id = p.contribution_id INNER JOIN civicrm_membership m ON p.membership_id = m.id WHERE (m.status_id > 2) AND (c.receive_date >= '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id = 1) AND (c.contribution_recur_id > 0) ORDER BY contact_id, receive_date".$countLimit;
+    /*
+    $sql_m = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_membership_payment p ON c.id = p.contribution_id INNER JOIN civicrm_membership m ON p.membership_id = m.id WHERE (m.status_id > 2) AND (c.receive_date >= '$dl') AND (c.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id = 1) ORDER BY contact_id, receive_date".$countLimit;
     $dao = CRM_Core_DAO::executeQuery($sql_m);
     while($dao->fetch()) {
       if (empty($contacts[$dao->contact_id])) {
@@ -125,6 +136,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
       // use the contribution id as a key to order them as input
       $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao->contribution_status_id, 'applied' => 1);
     }
+    */
   } 
   $results = array();
   if (count($contacts)) {
@@ -136,7 +148,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
       }
       include 'CRM/Contributionrecur/MembershipImplicit.php';
       foreach($contacts as $contact_id => $contributions) {
-        $results[] = contributionrecur_membershipImplicit(array('contact_id' => $contact_id), $contributions, $membership_types, $membership_ftype_id);
+        $results[] = $simulate ? $contact_id : contributionrecur_membershipImplicit(array('contact_id' => $contact_id), $contributions, array('membership_types' => $membership_types, 'membership_ftype_id' => $membership_ftype_id, 'create_new_membership_type_id' => $create_new_membership_type_id));
       }
     }
   }

@@ -13,13 +13,23 @@
  * This is useful for example to allow the default financial type to be tax deductible, with the membership portion converted to being non-tax-deductible
  * It will only process pending contributions in this way.
  */
-function contributionrecur_membershipImplicit($contact, $contributions, $membership_types, $membership_financial_type_id = NULL) {
-
+function contributionrecur_membershipImplicit($contact, $contributions, $options = array()){
+  // option keys are 'membership_types', 'membership_ftype_id', 'create_new_membership_type_id'
+  foreach(array('membership_types', 'membership_ftype_id', 'create_new_membership_type_id') as $key) {
+    if (empty($options[$key])) {
+      $options[$key] = FALSE;
+    }
+  }
+  $membership_types = $options['membership_types'];
+  $create_new_membership_type_id = $options['create_new_membership_type_id'];
+  $membership_financial_type_id = $options['membership_ftype_id'];
   $return[] = $contributions;
   // watchdog('contributionrecur','running membership implicit function for '.$contact['contact_id'].', '.$op.', <pre>@params</pre>',array('@params' => print_r($params, TRUE)));
   $contact_id = $contact['contact_id'];
   // only proceed if this contact has exactly one membership of the right kind and status (some kind of active or expired)
   $p = array('contact_id' => $contact_id, 'status_id' => array('IN' => array(1,2,3,4)), 'membership_type_id' => array('IN' => array_keys($membership_types)));
+  // or if we are configured to create a new one
+  $membership = array();
   try{
     $membership = civicrm_api3('Membership', 'getsingle', $p);
     $membership_type = $membership_types[$membership['membership_type_id']];
@@ -115,7 +125,32 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
         }
       }
     }
-    // now see if we should be generating an activity record
+    $return[] = 'Updated membership '.$membership['id'];
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    if ($create_new_membership_type_id) {
+      $contribution = array_shift($contributions);
+      $new_membership = array('contact_id' => $contact_id, 'membership_type_id' => $create_new_membership_type_id, 'join_date' => $contribution['receive_date']);
+      $new_membership['source'] = ts('Auto-generated membership from contribution of implicit membership type');
+      try {
+        $membership = civicrm_api3('Membership','create',$new_membership);
+        civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
+        $return[] = 'Created membership '.$membership['id'];
+      }
+      catch (CiviCRM_API3_Exception $e) {
+        $return[] = 'Error creating new membership';
+        $return[] = $e->getMessage();
+        $return[] = $new_membership;
+      }
+    }
+    else {
+      $return[] = 'Error getting existing membership';
+      $return[] = $e->getMessage();
+      $return[] = $p;
+    }
+  }
+  if (!empty($membership['id'])) {
+    // see if we should be generating an activity record
     $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
     $activity_type_id = $settings['activity_type_id'];
     if ($activity_type_id > 0) {
@@ -129,11 +164,6 @@ function contributionrecur_membershipImplicit($contact, $contributions, $members
         'activity_date_time'  => date("YmdHis"),)
       );
     }
-    $return[] = 'Updated membership '.$membership['id'];
-  }
-  catch (CiviCRM_API3_Exception $e) {
-    $return[] = $e->getMessage();
-    $return[] = $p;
   }
   return $return;
 }
