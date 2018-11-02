@@ -229,7 +229,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
           'next_scheduled_day'  => array(
             'name' => self::$nscd_fid,
-            'dbAlias' => 'DAYOFMONTH(contribution_recur_civireport.next_sched_contribution)',
+            'dbAlias' => 'DAYOFMONTH(contribution_recur_civireport.next_sched_contribution_date)',
             'title' => ts('Next Scheduled Day of the Month'),
           ),
           'cycle_day'  => array(
@@ -243,6 +243,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
           'payment_processor_id' => array(
             'title' => ts('Payment Processor'),
+          ),
+          'processor_id' => array(
+            'name' => 'processor_id',
+            'title' => ts('Payment processor-specific client code'),
           ),
         ),
         'filters' => array(
