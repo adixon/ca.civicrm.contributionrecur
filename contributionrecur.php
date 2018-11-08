@@ -149,34 +149,27 @@ function contributionrecur_civicrm_alterSettingsFolders(&$metaDataFolders = NULL
  * Put my settings page into the navigation menu
  */
 function contributionrecur_civicrm_navigationMenu(&$navMenu) {
-  $item = array(
-    'label' => 'Recurring Contributions Settings',
-    'name' => 'Recurring Contributions Settings',
-    'url' => 'civicrm/admin/contribute/recursettings',
-    'permission' => 'access CiviContribute,administer CiviCRM',
-    'operator'   => 'AND',
-    'separator'  => NULL,
-    'active'     => 1
+  $pages = array(
+    'settings_page' => array(
+      'label' => 'Recurring Contributions Settings',
+      'name' => 'Recurring Contributions Settings',
+      'url' => 'civicrm/admin/contribute/recursettings',
+      'parent'    => array('Administer', 'CiviContribute'),
+      'permission' => 'access CiviContribute,administer CiviCRM',
+      'operator'   => 'AND',
+      'separator'  => NULL,
+      'active'     => 1
+    ),
   );
-  // Check that our item doesn't already exist
-  $menu_item_search = array('url' => $item['url']);
-  $menu_items = array();
-  CRM_Core_BAO_Navigation::retrieve($menu_item_search, $menu_items);
-  if (empty($menu_items)) {
-    $item['navID'] = 1 + CRM_Core_DAO::singleValueQuery("SELECT max(id) FROM civicrm_navigation");
-    foreach ($navMenu as $key => $value) {
-      if ('Administer' == $value['attributes']['name']) {
-        $parent_key = $key;
-        foreach($value['child'] as $child_key => $child_value) {
-          if ('CiviContribute' == $child_value['attributes']['name']) {
-            $item['parentID'] =  $child_key;
-            $navMenu[$parent_key]['child'][$child_key]['child'][$item['navId']] = array(
-              'attributes' => $item,
-            );
-            break;
-          }
-        }
-      }
+  foreach ($pages as $item) {
+    // Check that our item doesn't already exist.
+    $menu_item_search = array('url' => $item['url']);
+    $menu_items = array();
+    CRM_Core_BAO_Navigation::retrieve($menu_item_search, $menu_items);
+    if (empty($menu_items)) {
+      $path = implode('/', $item['parent']);
+      unset($item['parent']);
+      _contributionrecur_civix_insert_navigation_menu($navMenu, $path, $item);
     }
   }
 }
