@@ -247,8 +247,8 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   // since this function gets called a lot, quickly determine if I care about the record being created
   // watchdog('civicrm','hook_civicrm_pre for '.$objectName.' <pre>@params</pre>',array('@params' => print_r($params,TRUE)));
   switch($objectName) {
-    case 'ContributionRecur':
-      $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  case 'ContributionRecur':
+      $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
       if (!empty($params['payment_processor_id'])) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
@@ -447,7 +447,14 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if (empty($form->_elementIndex['is_recur'])) {
     return;
   }
-  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
+  $page_id = $form->getVar('_id');
+  $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
+  foreach(array('force_recur','nice_recur') as $setting) {
+    if (!empty($page_settings[$setting])) {
+      $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
+    }
+  }
   // if the site administrator has enabled forced recurring pages
   if (!empty($settings['force_recur'])) {
     // If a form enables recurring, and the force_recur setting is on, set recurring to the default and required
@@ -672,4 +679,36 @@ function _contributionrecur_civicrm_getContributionTemplate($contribution) {
   return $template;
 }
 
-
+function contributionrecur_civicrm_tabset($tabsetName, &$tabs, $context) {
+  //check if the tabset is Contribution Page
+  if ($tabsetName == 'civicrm/admin/contribute') {
+    if (!empty($context['contribution_page_id'])) {
+      $contribID = $context['contribution_page_id'];
+      $url = CRM_Utils_System::url( 'civicrm/admin/contribute/recur',
+        "reset=1&snippet=5&force=1&id=$contribID&action=update&component=contribution" );
+      //add a new Volunteer tab along with url
+      $tab['recur'] = array(
+        'title' => ts('Recurring'),
+        'link' => $url,
+        'valid' => 1,
+        'active' => 1,
+        'current' => false,
+      );
+    }
+    if (!empty($context['urlString']) && !empty($context['urlParams'])) {
+      $tab[] = array(
+        'title' => ts('Recurring'),
+        'name' => ts('Recurring'),
+        'url' => $context['urlString'] . 'recur',
+        'qs' => $context['urlParams'],
+        'uniqueName' => 'recur',
+      );
+    }
+    //Insert this tab into position 4
+    $tabs = array_merge(
+      array_slice($tabs, 0, 4),
+      $tab,
+      array_slice($tabs, 4)
+    );
+  }
+} 

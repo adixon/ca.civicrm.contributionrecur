@@ -12,4 +12,10 @@
     <title>ContributionRecurAdHoc</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/contribute/recur</path>
+    <page_callback>CRM_Contributionrecur_Form_PageSettings</page_callback>
+    <title>PageSettings</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
 </menu>

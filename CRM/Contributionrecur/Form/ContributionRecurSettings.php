@@ -68,7 +68,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
         'isDefault' => TRUE,
       ),
     ));
-    $result = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+    $result = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
     $defaults = (empty($result)) ? array('-1') : $result;
     $this->setDefaults($defaults);
 
@@ -84,7 +84,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
         unset($values[$key]);
       }
     } 
-    civicrm_api3('Setting', 'create', array('domain_id' => 'current_domain', 'contributionrecur_settings' => $values));
+    CRM_Core_BAO_Setting::setItem($values, 'Recurring Contributions Extension', 'contributionrecur_settings');
     parent::postProcess();
   }
 
