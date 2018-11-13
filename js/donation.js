@@ -9,7 +9,6 @@
 CRM.$(function ($) {
   'use strict';
   $('#priceset-div').before('<div class="gift-type-select"><div id="monthly-gift"><label>Monthly Gift</label></div><div id="one-time-gift"><label>One-time Gift</label></div></div>');
-  $('.crm-public-form-item.crm-section.is_recur-section').after('<p>To arrange a legacy gift to further democracy for the next generation, please contact us at <a href="mailto:office@fairvote.ca">office@fairvote.ca</a></p>');
   if ($('#is_recur').prop('checked')) {
     setRecur();
     //console.log('checked');
