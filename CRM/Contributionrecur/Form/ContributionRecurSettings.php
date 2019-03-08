@@ -12,6 +12,11 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
 
     $this->add(
       'checkbox', // field type
+      'complete', // field name
+      ts('Complete generated contributions.')
+    );
+    $this->add(
+      'checkbox', // field type
       'edit_extra', // field name
       ts('Enable extra edit fields for recurring contributions.')
     );
