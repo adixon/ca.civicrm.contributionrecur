@@ -201,8 +201,9 @@ function civicrm_api3_job_recurringgenerate($params) {
     );
     // add any custom contribution values from the template
     foreach ($contribution_template as $field => $template_value) {
-    if (substr($field, 0, 7) == 'custom_') {
-      $contribution[$field] = is_array($template_value) ?  implode(', ',$template_value) : $template_value;
+      if (substr($field, 0, 7) == 'custom_') {
+        $contribution[$field] = is_array($template_value) ?  implode(', ',$template_value) : $template_value;
+      }
     }
     // add some special values from the template
     $get_from_template = array('contribution_campaign_id','amount_level');
