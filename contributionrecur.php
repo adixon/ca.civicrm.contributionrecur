@@ -415,8 +415,11 @@ function contributionrecur_CRM_Contribute_Form_Contribution(&$form) {
   if ($pp_id) {
     $class_name = _contributionrecur_pp_info($pp_id,'class_name');
     if ('Payment_RecurOffline' == substr($class_name,0,20)) {
-      $form->getElement('fee_amount')->unfreeze();
-      $form->getElement('net_amount')->unfreeze();
+      foreach(array('fee_amount','net_amount') as $elementName) {
+        if ($form->elementExists($elementName)){
+          $form->getElement($elementName)->unfreeze();
+        }
+      }
     }
   }
 }
@@ -653,9 +656,9 @@ function _contributionrecur_get_iats_extra($recur) {
  * For a given recurring contribution, find a reasonable candidate for a template, where possible
  */
 function _contributionrecur_civicrm_getContributionTemplate($contribution) {
-  // Get the first contribution in this series that matches the same total_amount, if present
+  // Get the most recent contribution in this series that matches the same total_amount, if present
   $template = array();
-  $get = array('version'  => 3, 'contribution_recur_id' => $contribution['contribution_recur_id'], 'options'  => array('sort'  => ' id' , 'limit'  => 1));
+  $get = array('version'  => 3, 'contribution_recur_id' => $contribution['contribution_recur_id'], 'options'  => array('sort'  => ' id DESC' , 'limit'  => 1));
   if (!empty($contribution['total_amount'])) {
     $get['total_amount'] = $contribution['total_amount'];
   }
