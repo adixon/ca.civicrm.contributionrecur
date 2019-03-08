@@ -12,13 +12,12 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
   protected function adHocContribution($values) {
     // generate another recurring contribution, matching our recurring template with submitted value
     $total_amount = $values['amount'];
-    $contribution_template = _iats_civicrm_getContributionTemplate(array('contribution_recur_id' => $values['crid']));
+    $contribution_template = _contributionrecur_civicrm_getContributionTemplate(array('contribution_recur_id' => $values['crid']));
     $contact_id = $values['cid'];
     $hash = md5(uniqid(rand(), true));
     $contribution_recur_id    = $values['crid'];
     $payment_processor_id = $values['paymentProcessorId'];
-    $pp_type = _iats_civicrm_is_iats($payment_processor_id);
-    $source = "Recurring Contribution (id=$contribution_recur_id, class=$pp_type)";
+    $source = "Recurring Contribution (id=$contribution_recur_id)";
     $receive_date = date("YmdHis",strtotime($values['receive_date'])); 
     $contribution = array(
       'version'        => 3,
