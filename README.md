@@ -39,6 +39,12 @@ You can force recurring options to be limited to specific day(s) of the month. C
 
 As an option, for (all) contribution pages that offer a recurring option - make it required and don't display it as an option. In other words, don't try to do recurring and non-recurring on the same contribution pages.
 
+If you want to modify that behaviour per contribution page (e.g. for a specific contribution page enable that functionality or disable it from a default on), you can do that on the extension-provided "Recurring" tab per contribution page.
+
+## Provide a js-based recurring/non-recurring switcher ##
+
+A simple header block that enables/disables the recurring checkbox. Both a global configuration and a per-contribution-page override option.
+
 ## Edit/View more fields for a recurring contribution series (also known as a "Subscription").
 
 This is only wise for some payment processors (e.g. token based ones), so it's configurable and off by default. 
