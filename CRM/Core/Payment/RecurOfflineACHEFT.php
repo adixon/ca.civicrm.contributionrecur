@@ -74,10 +74,14 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
       $params['trxn_id'] = sprintf('live_%08d', $trxn_id);
     }
     $params['gross_amount'] = $params['amount'];
-    $params['payment_status_id'] = 1;
+    $params['payment_status_id'] = 2;
     return $params;
   }
 
+  protected function getDirectDebitFormFields() {
+    return [];
+  }
+  
   /** 
    * Are back office payments supported.
    *
