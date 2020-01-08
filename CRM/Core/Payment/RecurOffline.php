@@ -85,6 +85,18 @@ class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
     return TRUE;
   }
 
+  /**
+   * @param string $message
+   * @param array $params
+   *
+   * @return bool
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   */
+  public function changeSubscriptionAmount(&$message = '', $params = []) {
+    $message = 'The recurring amount has been changed in CiviCRM. This has not changed the offline process.';
+    return TRUE;
+  }
+
   function &error($errorCode = NULL, $errorMessage = NULL) {
     $e = CRM_Core_Error::singleton();
     if ($errorCode) {
