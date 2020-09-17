@@ -43,7 +43,15 @@ If you want to modify that behaviour per contribution page (e.g. for a specific 
 
 ## Provide a js-based recurring/non-recurring switcher ##
 
-A simple header block that enables/disables the recurring checkbox. Both a global configuration and a per-contribution-page override option.
+A simple header block that enables/disables the recurring checkbox. Both a global configuration and a per-contribution-page override option. The contribution page needs to have recurring enabled, and you need to use a price set to match the hard-coded classes in the js here: https://github.com/adixon/ca.civicrm.contributionrecur/blob/master/js/donation.js
+
+The easiest way to do that is to create the price fields with these labels (which can then be changed to your specification later):
+<ul>
+  <li>One Time Gift - radio for one-time options</li>
+  <li>Other One-Time Amount - text field for "other"</li>
+  <li>Monthly Gift - radio of monthly options</li>
+  <li>Other Amount - text field for recurring 'other'</li>
+  </ul>
 
 ## Edit/View more fields for a recurring contribution series (also known as a "Subscription").
 
