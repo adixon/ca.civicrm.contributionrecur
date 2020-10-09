@@ -55,7 +55,12 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
       ts('Add a nice js-based recurring/non-recurring switcher.'),
       $options
     );
-
+    $this->add(
+      'select', // field type
+      'default_recur', // field name
+      ts('Default the recurring checkbox to checked, but allow users to uncheck it.'),
+      $options
+    );
     /* $this->addButtons(array(
       array(
         'type' => 'submit',
@@ -81,6 +86,7 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
     $settings = array(
       'force_recur' => $values['force_recur'], 
       'nice_recur' => $values['nice_recur'], 
+      'default_recur' => $values['default_recur'],
     );
     // Source
     $page_id = $this->_id;

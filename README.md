@@ -41,6 +41,12 @@ As an option, for (all) contribution pages that offer a recurring option - make 
 
 If you want to modify that behaviour per contribution page (e.g. for a specific contribution page enable that functionality or disable it from a default on), you can do that on the extension-provided "Recurring" tab per contribution page.
 
+## Default the "recurring payment" checkbox to checked
+
+As an option, for (all) contribution pages that offer a recurring option - default the checkbox to checked, but allow contributors to uncheck the box.
+
+If you want to modify that behaviour per contribution page (e.g. for a specific contribution page enable that functionality or disable it from a default on), you can do that on the extension-provided "Recurring" tab per contribution page.
+
 ## Provide a js-based recurring/non-recurring switcher ##
 
 A simple header block that enables/disables the recurring checkbox. Both a global configuration and a per-contribution-page override option. The contribution page needs to have recurring enabled, and you need to use a price set to match the hard-coded classes in the js here: https://github.com/adixon/ca.civicrm.contributionrecur/blob/master/js/donation.js
