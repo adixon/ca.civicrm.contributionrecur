@@ -74,7 +74,7 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
       $params['trxn_id'] = sprintf('live_%08d', $trxn_id);
     }
     $params['gross_amount'] = $params['amount'];
-    $params['payment_status_id'] = 2;
+    $params['payment_status_id'] = 1;
     return $params;
   }
 
@@ -90,6 +90,25 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
   protected function supportsBackOffice() {
     return TRUE;
   }
+
+  /**
+   *
+   */
+  public function changeSubscriptionAmount(&$message = '', $params = array()) {
+    $userAlert = ts('You have updated the amount of this recurring contribution.');
+    CRM_Core_Session::setStatus($userAlert, ts('Warning'), 'alert');
+    return TRUE;
+  }
+
+  /**
+   *
+   */
+  public function cancelSubscription(&$message = '', $params = array()) {
+    $userAlert = ts('You have cancelled this recurring contribution.');
+    CRM_Core_Session::setStatus($userAlert, ts('Warning'), 'alert');
+    return TRUE;
+  }
+
 
   function &error($errorCode = NULL, $errorMessage = NULL) {
     $e = CRM_Core_Error::singleton();
