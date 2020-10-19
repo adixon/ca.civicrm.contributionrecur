@@ -18,5 +18,6 @@ return array (
       'api_action' => 'recurringgenerate',
       'parameters' => '',
     ),
+    'update' => 'never',
   ),
 );
