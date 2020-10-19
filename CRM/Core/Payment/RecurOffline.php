@@ -85,6 +85,14 @@ class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
     return TRUE;
   }
 
+  /** 
+   * No cc form fields!
+   *
+   */
+  public function getPaymentFormFields() {
+    return [];
+  }
+
   /**
    * @param string $message
    * @param array $params

@@ -78,7 +78,7 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
     return $params;
   }
 
-  protected function getDirectDebitFormFields() {
+  public function getPaymentFormFields() {
     return [];
   }
   
