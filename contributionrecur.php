@@ -453,7 +453,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
   $page_id = $form->getVar('_id');
   $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
-  foreach(array('force_recur','nice_recur') as $setting) {
+  foreach (array('default_recur', 'force_recur', 'nice_recur') as $setting) {
     if (!empty($page_settings[$setting])) {
       $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
@@ -468,6 +468,9 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   elseif (!empty($settings['nice_recur'])) {
     CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
+    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
+  }
+  if (!empty($settings['default_recur'])) {
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
   }
   // if the site administrator has resticted the recurring days
