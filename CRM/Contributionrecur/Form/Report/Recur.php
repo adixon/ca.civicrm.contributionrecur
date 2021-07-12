@@ -50,13 +50,13 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
     self::$financial_types = (self::$version[0] <= 4 && self::$version[1] <= 2) ? array() : CRM_Contribute_PseudoConstant::financialType();
     if (self::$version[0] <= 4 && self::$version[1] < 4) {
       self::$prefixes = CRM_Core_PseudoConstant::individualPrefix();
-      self::$contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus();
+      self::$contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus(NULL, 'label');
     }
     else {
       self::$prefixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id');
       self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
     }
-      
+
     $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
     $result = civicrm_api('PaymentProcessor', 'get', $params);
     foreach($result['values'] as $pp) {

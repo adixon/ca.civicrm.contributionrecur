@@ -1,7 +1,7 @@
 {* Confirmation of reversing membership contribution generation  *}
 {* template to remove tags from contact  *}
 <div class="crm-block crm-form-block crm-contact-task-form-block">
-  <div class="messages status no-popup"><div class="icon inform-icon"></div>You have selected <strong>{$totalSelectedContacts}</strong> contact.</div>
+  <div class="messages status no-popup">{icon icon="fa-info-circle"}{/icon}You have selected <strong>{$totalSelectedContacts}</strong> contact.</div>
   <div class="crm-section">
     <div class="label">{$form.donation_ft_id.label}</div>
     <div class="content">{$form.donation_ft_id.html}</div>

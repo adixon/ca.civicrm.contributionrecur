@@ -357,8 +357,8 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
   return $result;
 }
 
-/* 
- * See if I need to fix the payment instrument by looking for 
+/*
+ * See if I need to fix the payment instrument by looking for
  * my offline recurring acheft processor
  * I'm assuming that other type 2 processors take care of themselves,
  * but you could remove class_name to fix them also
@@ -436,15 +436,14 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     return;
   }
   // if I'm using my dummy cc processor, modify the billing fields
-  $class_name = $form->_paymentProcessor['class_name'];
-  switch($class_name) {
+  switch(CRM_Utils_Array::value('class_name', $form->_paymentProcessor)) {
     case 'Payment_RecurOffline': // cc offline
       $form->removeElement('credit_card_number',TRUE);
       // unset($form->_paymentFields['credit_card_number']);
       $form->addElement('text','credit_card_number',ts('Credit Card, last 4 digits'));
       $form->removeElement('cvv2',TRUE);
       unset($form->_paymentFields['cvv2']);
-      break; 
+      break;
   }
 
   if (empty($form->_elementIndex['is_recur'])) {
@@ -479,11 +478,11 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if ((max($allow_days) > 0) || !empty($settings['force_recur'])) {
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
   }
-   
+
 }
 
-/* 
- * add some functionality to the update subscription form for recurring contributions 
+/*
+ * add some functionality to the update subscription form for recurring contributions
  *
  * Todo: make the available new fields configurable
  */
@@ -506,20 +505,20 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   /* get the recurring contribution record and the contact record, or quit */
   try {
     $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
-  } 
+  }
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
   try {
     $contact = civicrm_api3('Contact', 'getsingle', array('id' => $recur['contact_id']));
-  } 
+  }
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
   // turn off default notification checkbox, most will want to hide it as well.
   $defaults = array('is_notify' => 0);
   $edit_fields = array(
-    'contribution_status_id' => 'Status', 
+    'contribution_status_id' => 'Status',
     'next_sched_contribution_date' => 'Next Scheduled Contribution',
     'start_date' => 'Start Date',
   );
@@ -529,7 +528,7 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
     }
     else {
       $defaults[$fid] = $recur[$fid];
-    } 
+    }
   }
   if (0 == count($edit_fields)) { // assume everything is taken care of
     return;
@@ -577,18 +576,18 @@ function contributionrecur_CRM_Contribute_Form_Search(&$form) {
  * Display extra info on the recurring contribution view
  */
 function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) {
-  // get the recurring contribution record or quit 
+  // get the recurring contribution record or quit
   $crid = CRM_Utils_Request::retrieve('id', 'Integer', $page, FALSE);
   try {
     $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
-  } 
+  }
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
   // add the 'generate ad hoc contribution form' link
   $template = CRM_Core_Smarty::singleton();
   $adHocContributionLink = CRM_Utils_System::url('civicrm/contact/contributionrecur_adhoc', 'reset=1&cid='.$recur['contact_id'].'&paymentProcessorId='.$recur['payment_processor_id'].'&crid='.$crid.'&is_test='.$recur['is_test']);
-  $template->assign('adHocContributionLink', 
+  $template->assign('adHocContributionLink',
     '<a href="'.$adHocContributionLink.'">Generate</a>'
   );
   CRM_Core_Region::instance('page-body')->add(array(
@@ -603,7 +602,7 @@ function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
   $contactId = CRM_Utils_Request::retrieve('cid', 'Positive');
   $recur_edit_url = CRM_Utils_System::url('civicrm/contribute/updaterecur','reset=1&action=update&context=contribution&cid='.$contactId.'&crid=');
   contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
-} 
+}
 
 /**
  * Implement hook_civicrm_searchTasks()
@@ -714,4 +713,4 @@ function contributionrecur_civicrm_tabset($tabsetName, &$tabs, $context) {
       array_slice($tabs, 4)
     );
   }
-} 
+}
