@@ -26,12 +26,17 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
   $return[] = $contributions;
   // watchdog('contributionrecur','running membership implicit function for '.$contact['contact_id'].', '.$op.', <pre>@params</pre>',array('@params' => print_r($params, TRUE)));
   $contact_id = $contact['contact_id'];
-  // only proceed if this contact has exactly one membership of the right kind and status (some kind of active or expired)
-  $p = array('contact_id' => $contact_id, 'status_id' => array('IN' => array(1,2,3,4)), 'membership_type_id' => array('IN' => array_keys($membership_types)));
+  // only proceed if this contact has an active or expired membership of the right kind 
+  $p = ['contact_id' => $contact_id, 'status_id' => ['IN' => [1,2,3,4]], 'membership_type_id' => ['IN' => array_keys($membership_types)],
+    'sequential' => 1,
+    'options' => ['sort' => 'end_date DESC', 'limit' => 1]
+  ];
   // or if we are configured to create a new one
   $membership = array();
   try{
-    $membership = civicrm_api3('Membership', 'getsingle', $p);
+    // $membership = civicrm_api3('Membership', 'getsingle', $p);
+    $memberships = civicrm_api3('Membership', 'get', $p);
+    $membership = $memberships['values'][0];
     $membership_type = $membership_types[$membership['membership_type_id']];
     $total_amount = floatval(0);
     $applied_contributions = array();
