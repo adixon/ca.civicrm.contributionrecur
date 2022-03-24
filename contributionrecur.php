@@ -450,6 +450,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if (empty($form->_elementIndex['is_recur'])) {
     return;
   }
+  // get the default settings as well as the individual per-page settings
   $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
   $page_id = $form->getVar('_id');
   $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
@@ -458,6 +459,12 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
       $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
   }
+  /* if ($settings['nice_recur']) {
+  foreach(array('') as $machine_name) {
+    if (!empty($page_settings[$setting])) {
+      $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
+    }
+  } */
   // if the site administrator has enabled forced recurring pages
   if (!empty($settings['force_recur'])) {
     // If a form enables recurring, and the force_recur setting is on, set recurring to the default and required
