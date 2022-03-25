@@ -33,6 +33,42 @@ CRM.$(function ($) {
     }
   });
 
+  /* when choosing a radio amount, if amount is zero, move the cursor to the other amount box, otherwise zero out the other amount box */
+  $(recurSettings.one_time_gift_section).find('input').click(function() {
+    var amt = parseFloat($(this).attr('data-amount'));
+    if (amt == 0) {
+      $(recurSettings.other_one_time_amount_section).find('input').focus();
+    }
+    else {
+      $(recurSettings.other_one_time_amount_section).find('input').val('0').blur();
+    }
+  });
+  $(recurSettings.monthly_gift_section).find('input').click(function() {
+    var amt = parseFloat($(this).attr('data-amount'));
+    if (amt == 0) {
+      $(recurSettings.other_amount_section).find('input').focus();
+    }
+    else {
+      $(recurSettings.other_amount_section).find('input').val('0').blur();
+    }
+  });
+
+  /* when a user clicks in the other amount, set the radio amount to zero */
+  $(recurSettings.other_one_time_amount_section).find('input').focus(function() {
+    var amt = parseFloat($(recurSettings.one_time_gift_section).find('input:checked').attr('data-amount'));
+    if (0 < amt) {
+      $(recurSettings.one_time_gift_section).find('input').prop('checked',false);
+      $(recurSettings.one_time_gift_section).find('input').filter(zeroDataAmount).trigger('click');
+    }
+  });
+  $(recurSettings.other_amount_section).find('input').focus(function() {
+    var amt = parseFloat($(recurSettings.monthly_gift_section).find('input:checked').attr('data-amount'));
+    if (0 < amt) {
+      $(recurSettings.monthly_gift_section).find('input').prop('checked',false).blur();
+      $(recurSettings.monthly_gift_section).find('input').filter(zeroDataAmount).trigger('click').blur(); // .prop('checked',true);
+    }
+  });
+
   /* filter function to identify the 0 amount radio option */
   function zeroDataAmount(index, elem) {
     var amt = parseFloat($(elem).attr('data-amount'));
