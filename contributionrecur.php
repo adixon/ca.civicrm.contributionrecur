@@ -429,6 +429,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution(&$form) {
  *
  * Force recurring if it's an option on this form and configured in the settings
  * Add information about the next contribution if the allowed days are configured
+ * Do stuff for the nice js recurring switch if enabled
  */
 function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   // ignore this form if I have no payment processor or there's no recurring option
@@ -459,12 +460,6 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
       $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
   }
-  /* if ($settings['nice_recur']) {
-  foreach(array('') as $machine_name) {
-    if (!empty($page_settings[$setting])) {
-      $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
-    }
-  } */
   // if the site administrator has enabled forced recurring pages
   if (!empty($settings['force_recur'])) {
     // If a form enables recurring, and the force_recur setting is on, set recurring to the default and required
@@ -476,6 +471,14 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
+    // set the price field class names for use by the js, defaulting to the 'canonical' naming
+    $nice_recur_names = ['monthly_gift','other_amount','one_time_gift','other_one_time_amount'];
+    $nice_recur_settings = [];
+    foreach($nice_recur_names as $machine_name) {
+      $setting = 'name_'.$machine_name;
+      $nice_recur_settings[$machine_name.'_section'] = '.' . (empty($page_settings[$setting]) ? $machine_name : $page_settings[$setting]) . '-section';
+    }
+    contributionrecur_civicrm_varset($nice_recur_settings);
   }
   // if the site administrator has resticted the recurring days
   $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
