@@ -36,7 +36,6 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
   protected $_customGroupExtends = array('Contact');
 
-  static private $nscd_fid = '';
   static private $processors = array();
   static private $version = array();
   static private $financial_types = array();
@@ -45,7 +44,6 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
   function __construct() {
 
-    self::$nscd_fid = _contributionrecur_civicrm_nscd_fid();
     self::$version = _contributionrecur_civicrm_domain_info('version');
     self::$financial_types = (self::$version[0] <= 4 && self::$version[1] <= 2) ? array() : CRM_Contribute_PseudoConstant::financialType();
     if (self::$version[0] <= 4 && self::$version[1] < 4) {
@@ -164,7 +162,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'modified_date' => array(
             'title' => ts('Modified Date'),
           ),
-          self::$nscd_fid  => array(
+          'next_sched_contribution_date'  => array(
             'title' => ts('Next Scheduled Contribution Date'),
           ),
           'cycle_day'  => array(
@@ -224,11 +222,11 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'cancel_date' => array(
             'title' => ts('Cancel Date'),
           ),
-          self::$nscd_fid => array(
+          'next_sched_contribution_date' => array(
             'title' => ts('Next Scheduled Contribution Date'),
           ),
           'next_scheduled_day'  => array(
-            'name' => self::$nscd_fid,
+            'name' => 'next_sched_contribution_date',
             'dbAlias' => 'DAYOFMONTH(contribution_recur_civireport.next_sched_contribution_date)',
             'title' => ts('Next Scheduled Day of the Month'),
           ),
@@ -286,7 +284,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' =>  CRM_Core_OptionGroup::values('recur_frequency_units'),
           ),
-          self::$nscd_fid  => array(
+          'next_sched_contribution_date'  => array(
             'title' => ts('Next Scheduled Contribution Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,

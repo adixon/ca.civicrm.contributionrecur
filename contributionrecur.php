@@ -191,11 +191,6 @@ function _contributionrecur_civicrm_domain_info($key) {
   }
 }
 
-function _contributionrecur_civicrm_nscd_fid() {
-  $version = _contributionrecur_civicrm_domain_info('version');
-  return (($version[0] <= 4) && ($version[1] <= 3)) ? 'next_sched_contribution' : 'next_sched_contribution_date';
-}
-
 function contributionrecur_civicrm_varset($vars) {
   $version = CRM_Utils_System::version();
   if (version_compare($version, '4.5') < 0) { /// support 4.4!
