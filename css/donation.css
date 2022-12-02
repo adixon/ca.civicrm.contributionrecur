@@ -15,8 +15,8 @@ div.crm-container .gift-type-select label {
   border: 1px solid #00ABB4;
 }
 
-.gift-type-select div:hover,
-.gift-type-select div.selected {
+.gift-type-select div:hover label,
+.gift-type-select div.selected label {
   background-color: #00ABB4;
   color: #FFF;
 }
@@ -26,3 +26,31 @@ div.crm-container .gift-type-select label {
   display: table;
   clear: both;
 }
+
+/* contribution page layout for widish screens */
+@media all and (min-width: 960px) {
+  #crm-main-content-wrapper.has-intro-text .crm-contribution-main-form-block {
+    width: 35%;
+    float: right;
+    border: 1px solid #00abb4;
+    padding: 10px 10px;
+    background-color: #E6FEFF;
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    margin: 10px 10px;
+    font-size: 90%;
+  }
+  #crm-main-content-wrapper.has-intro-text .crm-contribution-main-form-block #priceset fieldset {
+    border-top: none;
+  }
+  #crm-main-content-wrapper.has-intro-text #intro_text {
+    width: 55%;
+    float: left;
+  }
+
+  #civicrm-footer {
+    clear: both;
+  }
+}
+
