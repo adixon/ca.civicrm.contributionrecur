@@ -7,13 +7,14 @@
 
 class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
-  protected $_customGroupExtends = array('Contact');
+  protected $_customGroupExtends = array('Contact', 'Membership');
 
   static private $processors = array();
   // static private $version = array();
   static private $financial_types = array();
   static private $prefixes = array();
   static private $contributionStatus = array();
+  static private $membershipStatus = array();
 
   function __construct() {
 
@@ -21,6 +22,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
     self::$financial_types = CRM_Contribute_PseudoConstant::financialType();
     self::$prefixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id');
     self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
+    self::$membershipStatus = CRM_Member_PseudoConstant::membershipStatus();
 
     $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
     $result = civicrm_api('PaymentProcessor', 'get', $params);
@@ -114,6 +116,45 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
         ),
       ),
+      'civicrm_membership' => array(
+        'dao' => 'CRM_Member_DAO_Membership',
+        'fields' => array(
+          'id' => array(
+            'no_display' => TRUE,
+            'required' => TRUE,
+          ),
+          'join_date' => array(
+            'title' => ts('Membership Join Date'),
+          ),
+          'start_date' => array(
+            'title' => ts('Membership Start Date'),
+          ),
+          'end_date' => array(
+            'title' => ts('Membership End Date'),
+          ),
+          'status_id' => array(
+            'title' => ts('Membership Status'),
+          ),
+        ),
+        'filters' => array(
+          'end_date' => array(
+            'title' => ts('Membership End Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'type' => CRM_Utils_Type::T_DATE,
+          ),
+        ),
+        'order_bys' => array(
+          'join_date' => array(
+            'title' => ts('Membership Join Date'),
+          ),
+          'start_date' => array(
+            'title' => ts('Membership Start Date'),
+          ),
+          'end_date' => array(
+            'title' => ts('Membership End Date'),
+          ),
+        ),
+      ),
       'civicrm_contribution_recur' => array(
         'dao' => 'CRM_Contribute_DAO_ContributionRecur',
         'order_bys' => array(
@@ -163,7 +204,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'default' => TRUE,
           ),
           'contribution_status_id' => array(
-            'title' => ts('Donation Status'),
+            'title' => ts('Recurring Donation Status'),
           ),
           'frequency_interval' => array(
             'title' => ts('Frequency interval'),
@@ -343,6 +384,12 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       LEFT JOIN civicrm_contribution  {$this->_aliases['civicrm_contribution']}
         ON ({$this->_aliases['civicrm_contribution_recur']}.id = {$this->_aliases['civicrm_contribution']}.contribution_recur_id AND 1 = {$this->_aliases['civicrm_contribution']}.contribution_status_id)";
     $this->_from .= "
+      LEFT JOIN civicrm_membership_payment 
+        ON {$this->_aliases['civicrm_contribution']}.id = civicrm_membership_payment.contribution_id";
+    $this->_from .= "
+      LEFT JOIN civicrm_membership  {$this->_aliases['civicrm_membership']}
+        ON civicrm_membership_payment.membership_id = {$this->_aliases['civicrm_membership']}.id";
+    $this->_from .= "
       LEFT JOIN civicrm_email  {$this->_aliases['civicrm_email']}
         ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_email']}.contact_id";
     $this->_from .= "
@@ -377,6 +424,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       // handle contribution status id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_contribution_status_id', $row)) {
         $rows[$rowNum]['civicrm_contribution_recur_contribution_status_id'] = self::$contributionStatus[$value];
+      }
+      // handle membership status id
+      if ($value = CRM_Utils_Array::value('civicrm_membership_status_id', $row)) {
+        $rows[$rowNum]['civicrm_membership_status_id'] = self::$membershipStatus[$value];
       }
       // handle processor id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_payment_processor_id', $row)) {
