@@ -15,10 +15,18 @@
   <version>1.0</version>
   <develStage>beta</develStage>
   <compatibility>
-    <ver>4.4,4.5,4.6,4.7</ver>
+    <ver>5.27</ver>
   </compatibility>
   <comments>This module is being incubated</comments>
   <civix>
     <namespace>CRM/Contributionrecur</namespace>
+    <format>22.12.1</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>mgd-php@1.0.0</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+  </classloader>
 </extension>
