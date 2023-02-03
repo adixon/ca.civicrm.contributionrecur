@@ -329,43 +329,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
         ),
       ),
-      'civicrm_address' => array(
-        'dao' => 'CRM_Core_DAO_Address',
-        'fields' => array(
-          'street_address' => array(
-            'title' => ts('Address'),
-            'default' => FALSE,
-          ),
-          'supplemental_address_1' => array(
-            'title' => ts('Supplementary Address Field 1'),
-            'default' => FALSE,
-          ),
-          'supplemental_address_2' => array(
-            'title' => ts('Supplementary Address Field 2'),
-            'default' => FALSE,
-          ),
-          'city' => array(
-            'title' => 'City',
-            'default' => FALSE,
-          ),
-          'state_province_id' => array(
-            'title' => 'Province',
-            'default' => FALSE,
-            'alter_display' => 'alterStateProvinceID',
-          ),
-          'postal_code' => array(
-            'title' => 'Postal Code',
-            'default' => FALSE,
-          ),
-          'country_id' => array(
-            'title' => 'Country',
-            'default' => FALSE,
-            'alter_display' => 'alterCountryID',
-          ),
-        ),
-        'grouping' => 'contact-fields',
-      ),
-    );
+    )  + $this->addAddressFields();
     if (empty(self::$financial_types)) {
       unset($this->_columns['civicrm_contribution_recur']['filters']['financial_type_id']);
     }
@@ -389,17 +353,9 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
     $this->_from .= "
       LEFT JOIN civicrm_membership  {$this->_aliases['civicrm_membership']}
         ON civicrm_membership_payment.membership_id = {$this->_aliases['civicrm_membership']}.id";
-    $this->_from .= "
-      LEFT JOIN civicrm_email  {$this->_aliases['civicrm_email']}
-        ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_email']}.contact_id";
-    $this->_from .= "
-      LEFT JOIN civicrm_address {$this->_aliases['civicrm_address']}
-        ON ({$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_address']}.contact_id AND
-          {$this->_aliases['civicrm_address']}.is_primary = 1 )";
-    $this->_from .= "
-      LEFT  JOIN civicrm_phone {$this->_aliases['civicrm_phone']}
-        ON ({$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_phone']}.contact_id AND
-       {$this->_aliases['civicrm_phone']}.is_primary = 1)";
+    $this->joinAddressFromContact();
+    $this->joinPhoneFromContact();
+    $this->joinEmailFromContact();
   }
 
   function groupBy() {
