@@ -1,35 +1,17 @@
 ca.civicrm.contribution_recur
 =============================
 
-Useful extensions of recurring contribution functionality in CiviCRM. Particularly useful for larger installations, with some functions only available for some payment processors. You'll want to go the configuration screen in Admin -> CiviContribute -> Recurring Contribution Settings after enabling it.
+This is a somewhat organic collection of extensions of recurring contribution functionality in CiviCRM. Particularly useful for larger installations, with some functions only available for some payment processors. You'll want to go the configuration screen in Admin -> CiviContribute -> Recurring Contribution Settings after enabling it.
+
+Note: many of the features have crept in over the years and may no longer work exactly as advertised, but I do use the extension on many sites, so it's not harmful!
+
+## Tokens
+
+A collection of tokens for a contact's next expected recurring contribution, which is usually what "My monthly donation" translates to. Includes for example, the amount, as well as the date of the next expected contribution.
 
 ## Reports
 
-Backported and extended Jamie McClelland's Report in https://issues.civicrm.org/jira/browse/CRM-15453.
-
-##  Auto-memberships
-
-Memberships tied to recurring contributions have issues. You would expect a contribution of type 'Membership Contribution' to auto-renew a membership, but it doesn't necessarily.
-
-This extension provides a job that will identify recurring contributions that should be associated with a membership but aren't, and try to apply them appropriately.
-
-As an extra feature, you can configure it to generate matching/reversing contributions of a different type for the membership portion allowing extra contributions to be deductible for example.
-
-The job has to be specially configured with at least two parameters:
-<code><pre>
-mapping=financial_type_id:membership_type_id:membership_financial_type_id
-dateLimit=(something that strtotime can read)
-</pre></code>
-
-The type_id's for the mapping can be multiple if you like, separated by commas.
-
-You can also add these two paramenters:
-<code><pre>
-countLimit=(maximum number of contributions to process per job)
-verbose=(if set, put a lot of debugging info into the job log)
-</pre></code>
-
-You'll want to run this on a testing install and use the countLimit and verbose to take a look at what it's doing, before you set it up on a production install.
+An extended version of the recurring contribution report in core.
 
 ## Restrict recurring days option
 
@@ -81,5 +63,28 @@ ignoremembership = boolean, set to 1 if you want to do your membership processin
 
 ## Edit cancelled recurring schedules ##
 
-Normally, once a schedule is cancelled, you can't uncancel it. In fact, the functionality for editing a cancelled schedule is still there, so this just gives you back the edit button which is now useful because you can edit the status. [functionality still in progress as of Oct 2015].
+Normally, once a schedule is cancelled, you can't uncancel it. In fact, the functionality for editing a cancelled schedule is still there, so this just gives you back the edit button which is now useful because you can edit the status.
 
+##  Auto-memberships
+
+Memberships tied to recurring contributions have issues. You would expect a contribution of type 'Membership Contribution' to auto-renew a membership, but it doesn't necessarily.
+
+This extension provides a job that will identify recurring contributions that should be associated with a membership but aren't, and try to apply them appropriately.
+
+As an extra feature, you can configure it to generate matching/reversing contributions of a different type for the membership portion allowing extra contributions to be deductible for example.
+
+The job has to be specially configured with at least two parameters:
+<code><pre>
+mapping=financial_type_id:membership_type_id:membership_financial_type_id
+dateLimit=(something that strtotime can read)
+</pre></code>
+
+The type_id's for the mapping can be multiple if you like, separated by commas.
+
+You can also add these two paramenters:
+<code><pre>
+countLimit=(maximum number of contributions to process per job)
+verbose=(if set, put a lot of debugging info into the job log)
+</pre></code>
+
+You'll want to run this on a testing install and use the countLimit and verbose to take a look at what it's doing, before you set it up on a production install.
