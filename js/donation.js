@@ -99,6 +99,7 @@ CRM.$(function ($) {
       calculateCheckboxLineItemValue(calcThis);
     }
     $(recurSettings.other_amount_section).find('input').val(otherGiftAmount).blur();
+    $('#amount_sum_label').text('Recurring gift amount');
   }
   function setOneTime() {
     $('#one-time-gift').addClass('selected');
@@ -118,6 +119,7 @@ CRM.$(function ($) {
       calculateCheckboxLineItemValue(calcThis);
     }
     $(recurSettings.other_one_time_amount_section).find('input').val(otherGiftAmount).blur();
+    $('#amount_sum_label').text('One-time gift amount');
   }
 });
 
