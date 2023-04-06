@@ -670,3 +670,77 @@ function contributionrecur_civicrm_tabset($tabsetName, &$tabs, $context) {
 // function contributionrecur_civicrm_entityTypes(&$entityTypes) {
 //   _contributionrecur_civix_civicrm_entityTypes($entityTypes);
 // }
+//
+
+use Symfony\Component\Config\Resource\FileResource;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+/**
+ * Add token services to the container.
+ *
+ * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+ */
+function contributionrecur_civicrm_container(ContainerBuilder $container) {
+  $container->addResource(new FileResource(__FILE__));
+  $container->findDefinition('dispatcher')->addMethodCall('addListener',
+    ['civi.token.list', 'contributionrecur_register_tokens']
+  )->setPublic(TRUE);
+  $container->findDefinition('dispatcher')->addMethodCall('addListener',
+    ['civi.token.eval', 'contributionrecur_evaluate_tokens']
+  )->setPublic(TRUE);
+}
+
+
+/*
+ * contributionrecur_getFields()
+ *
+ * utility function to list the available fields in a contribution_recur record
+ * keys is an array of which properties of the fields to get, e.g. 'name'
+ * as the machine name and 'title' as the label.
+ */
+function contributionrecur_getFields($keys) {
+  $fields = \Civi\Api4\ContributionRecur::getFields();
+  foreach($keys as $key) {
+    $fields->addSelect($key);
+  }
+  return $fields->execute();
+}
+
+function contributionrecur_register_tokens(\Civi\Token\Event\TokenRegisterEvent $e) {
+  $contribution_recur = $e->entity('contribution_recur');
+  foreach (contributionrecur_getFields(['name','title']) as $field) {
+    $contribution_recur->register($field['name'],$field['title']);
+  }
+}
+
+/*
+ * Provide values from the recurring contribution that is 'in progress' that is next scheduled to run
+ */
+
+function contributionrecur_evaluate_tokens(\Civi\Token\Event\TokenValueEvent $e) {
+  foreach ($e->getRows() as $row) {
+    $contactId = $row->context['contactId'];
+    $contributionRecur = \Civi\Api4\ContributionRecur::get()
+      ->addWhere('contact_id', '=', $contactId)
+      ->addWhere('contribution_status_id:name', '=', 'In Progress')
+      ->addWhere('next_sched_contribution_date', '>', 'NOW')
+      ->addOrderBy('next_sched_contribution_date', 'ASC')
+      ->setLimit(1)
+      ->execute();
+    /** @var TokenRow $row */
+    $row->format('text/html');
+    foreach (contributionrecur_getFields(['name','data_type']) as $field) {
+      $field_name = $field['name'];
+      if (!empty($contributionRecur[0][$field_name])) {
+        switch($field['data_type']) {
+          case 'Timestamp':
+            $value = CRM_Utils_Date::formatDateOnlyLong($contributionRecur[0][$field_name]);
+            break;
+          default:
+            $value = $contributionRecur[0][$field_name];
+        }
+        $row->tokens('contribution_recur', $field_name, $value);
+      }
+    }
+  }
+}
