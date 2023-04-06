@@ -13,27 +13,32 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     $this->add(
       'checkbox', // field type
       'complete', // field name
-      ts('Complete generated contributions.')
+      ts('Complete generated contributions')
     );
     $this->add(
       'checkbox', // field type
       'edit_extra', // field name
-      ts('Enable extra edit fields for recurring contributions.')
+      ts('Enable extra edit fields for recurring contributions')
     );
     $this->add(
       'checkbox', // field type
       'no_receipts', // field name
-      ts('Prevent all receipts for recurring contributions.')
+      ts('Prevent all receipts for recurring contributions')
     );
     $this->add(
       'checkbox', // field type
       'force_recur', // field name
-      ts('Force recurring-only option on pages that it is available.')
+      ts('Force recurring-only option on pages that it is available')
     );
     $this->add(
       'checkbox', // field type
       'nice_recur', // field name
-      ts('Add a nice js-based recurring/non-recurring switcher.')
+      ts('Add a nice js-based recurring/non-recurring switcher')
+    );
+    $this->add(
+      'checkbox', // field type
+      'default_membership_auto_renew', // field name
+      ts('Modify default membership auto-renew to "on"')
     );
     // allow selection of activity type for implicit membership renewal 
     $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));

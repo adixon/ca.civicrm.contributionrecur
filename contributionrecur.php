@@ -375,14 +375,14 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
       break;
   }
 
-  if (empty($form->_elementIndex['is_recur'])) {
+  if (empty($form->_elementIndex['is_recur']) && empty($form->_elementIndex['auto_renew'])) {
     return;
   }
   // get the default settings as well as the individual per-page settings
   $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
   $page_id = $form->getVar('_id');
   $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
-  foreach(array('force_recur','nice_recur') as $setting) {
+  foreach(array('force_recur','nice_recur','default_membership_auto_renew') as $setting) {
     if (!empty($page_settings[$setting])) {
       $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
@@ -406,6 +406,12 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
       $nice_recur_settings[$machine_name.'_section'] = '.' . (empty($page_settings[$setting]) ? $machine_name : $page_settings[$setting]) . '-section';
     }
     contributionrecur_civicrm_varset($nice_recur_settings);
+  }
+  if (!empty($settings['default_membership_auto_renew'])) {
+    // If the default_membership_auto_renew setting is on, alter the default value in the form
+    $form->setDefaults(array('auto_renew' => 1)); // make recurring contrib default to true
+    contributionrecur_civicrm_varset(array('defaultMembershipAutoRenew' => '1'));
+    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/defaultMembershipAutoRenew.js');
   }
   // if the site administrator has resticted the recurring days
   $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
