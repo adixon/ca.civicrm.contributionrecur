@@ -25,7 +25,7 @@ If you want to modify that behaviour per contribution page (e.g. for a specific 
 
 ## Default the "recurring payment" checkbox to checked
 
-As an option, for (all) contribution pages that offer a recurring option - default the checkbox to checked, but allow contributors to uncheck the box.
+As an option, for (all) contribution pages that offer a recurring option - default the checkbox to checked, but allow contributors to uncheck the box.  If "default to recurring" and "force recurring" are both selected, "default to recurring" will have no effect.
 
 If you want to modify that behaviour per contribution page (e.g. for a specific contribution page enable that functionality or disable it from a default on), you can do that on the extension-provided "Recurring" tab per contribution page.
 
