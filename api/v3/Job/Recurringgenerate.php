@@ -8,12 +8,19 @@
  * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
  */
 function _civicrm_api3_job_recurringgenerate_spec(&$spec) {
-  $spec['payment_processor_id'] = array(
-    'title' => 'Payment processor id',
-  );
-  $spec['financial_type_id'] = array(
-    'title' => 'Financial type id',
-  );
+  $spec['payment_processor_id']['title'] = 'Payment Processor ID';
+  $spec['payment_processor_id']['description'] = 'The Payment Processor ID';
+  $spec['payment_processor_id']['type'] = CRM_Utils_Type::T_INT;
+  $spec['financial_type_id'] = [
+    'title' => 'Financial Type ID',
+    'name' => 'financial_type_id',
+    'type' => CRM_Utils_Type::T_INT,
+    'pseudoconstant' => [
+      'table' => 'civicrm_financial_type',
+      'keyColumn' => 'id',
+      'labelColumn' => 'name',
+    ],
+  ];
   $spec['id'] = array(
     'title' => 'Recurring payment id',
   );
@@ -99,7 +106,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     }
   }
   $select .= $param_where .' GROUP BY c.contribution_recur_id';
-  $dao = CRM_Core_DAO::executeQuery($select,$args);
+  $dao = CRM_Core_DAO::executeQuery($select);
   while ($dao->fetch()) {
     // check for end dates that should be unset because I haven't finished
     if ($dao->installments_done < $dao->installments) { // at least one more installments
@@ -126,7 +133,7 @@ function civicrm_api3_job_recurringgenerate($params) {
         cr.contribution_status_id IN (1,5) 
         AND NOT(cr.installments > 0)
         AND NOT(ISNULL(cr.end_date))'.$param_where;
-  $dao = CRM_Core_DAO::executeQuery($update,$args);
+  CRM_Core_DAO::executeQuery($update);
   
   // Third, we update the status_id of the all in-progress or completed recurring contribution records
   // Unexpire uncompleted cycles
@@ -137,7 +144,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       WHERE
         cr.contribution_status_id = 1 
         AND (cr.end_date IS NULL OR cr.end_date > NOW())'.$param_where;
-  $dao = CRM_Core_DAO::executeQuery($update,$args);
+  CRM_Core_DAO::executeQuery($update);
   // Expire badly-defined completed cycles
   $update = 'UPDATE civicrm_contribution_recur cr 
       INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
@@ -152,7 +159,7 @@ function civicrm_api3_job_recurringgenerate($params) {
           OR 
           (frequency_interval = 0) 
         )'.$param_where;
-  $dao = CRM_Core_DAO::executeQuery($update,$args);
+  CRM_Core_DAO::executeQuery($update);
 
   // Now we're ready to generate contribution records
   // Select the ongoing recurring payments where the next scheduled contribution date is before the end of of the current day

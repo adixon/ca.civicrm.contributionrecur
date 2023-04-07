@@ -12,17 +12,6 @@ function contributionrecur_civicrm_config(&$config) {
 }
 
 /**
- * Implementation of hook_civicrm_xmlMenu
- *
- * @param $files array(string)
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
- */
-function contributionrecur_civicrm_xmlMenu(&$files) {
-  _contributionrecur_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implementation of hook_civicrm_install
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
@@ -32,45 +21,12 @@ function contributionrecur_civicrm_install() {
 }
 
 /**
- * Implementation of hook_civicrm_uninstall
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function contributionrecur_civicrm_uninstall() {
-  _contributionrecur_civix_civicrm_uninstall();
-}
-
-/**
  * Implementation of hook_civicrm_enable
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function contributionrecur_civicrm_enable() {
   _contributionrecur_civix_civicrm_enable();
-}
-
-/**
- * Implementation of hook_civicrm_disable
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function contributionrecur_civicrm_disable() {
-  _contributionrecur_civix_civicrm_disable();
-}
-
-/**
- * Implementation of hook_civicrm_upgrade
- *
- * @param $op string, the type of operation being performed; 'check' or 'enqueue'
- * @param $queue CRM_Queue_Queue, (for 'enqueue') the modifiable list of pending up upgrade tasks
- *
- * @return mixed  based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
- *                for 'enqueue', returns void
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function contributionrecur_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _contributionrecur_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -120,29 +76,6 @@ function contributionrecur_civicrm_managed(&$entities) {
       'payment_type' => 2,
     ),
   );
-  _contributionrecur_civix_civicrm_managed($entities);
-}
-
-/**
- * Implementation of hook_civicrm_caseTypes
- *
- * Generate a list of case-types
- *
- * Note: This hook only runs in CiviCRM 4.4+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function contributionrecur_civicrm_caseTypes(&$caseTypes) {
-  _contributionrecur_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implementation of hook_civicrm_alterSettingsFolders
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
- */
-function contributionrecur_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _contributionrecur_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /*
@@ -189,11 +122,6 @@ function _contributionrecur_civicrm_domain_info($key) {
       $config_backend = unserialize($domain['config_backend']);
       return $config_backend[$key];
   }
-}
-
-function _contributionrecur_civicrm_nscd_fid() {
-  $version = _contributionrecur_civicrm_domain_info('version');
-  return (($version[0] <= 4) && ($version[1] <= 3)) ? 'next_sched_contribution' : 'next_sched_contribution_date';
 }
 
 function contributionrecur_civicrm_varset($vars) {
@@ -357,8 +285,8 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
   return $result;
 }
 
-/* 
- * See if I need to fix the payment instrument by looking for 
+/*
+ * See if I need to fix the payment instrument by looking for
  * my offline recurring acheft processor
  * I'm assuming that other type 2 processors take care of themselves,
  * but you could remove class_name to fix them also
@@ -429,6 +357,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution(&$form) {
  *
  * Force recurring if it's an option on this form and configured in the settings
  * Add information about the next contribution if the allowed days are configured
+ * Do stuff for the nice js recurring switch if enabled
  */
 function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   // ignore this form if I have no payment processor or there's no recurring option
@@ -436,24 +365,24 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     return;
   }
   // if I'm using my dummy cc processor, modify the billing fields
-  $class_name = $form->_paymentProcessor['class_name'];
-  switch($class_name) {
+  switch(CRM_Utils_Array::value('class_name', $form->_paymentProcessor)) {
     case 'Payment_RecurOffline': // cc offline
       $form->removeElement('credit_card_number',TRUE);
       // unset($form->_paymentFields['credit_card_number']);
       $form->addElement('text','credit_card_number',ts('Credit Card, last 4 digits'));
       $form->removeElement('cvv2',TRUE);
       unset($form->_paymentFields['cvv2']);
-      break; 
+      break;
   }
 
-  if (empty($form->_elementIndex['is_recur'])) {
+  if (empty($form->_elementIndex['is_recur']) && empty($form->_elementIndex['auto_renew'])) {
     return;
   }
+  // get the default settings as well as the individual per-page settings
   $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
   $page_id = $form->getVar('_id');
   $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
-  foreach (array('default_recur', 'force_recur', 'nice_recur') as $setting) {
+  foreach(array('default_recur','force_recur','nice_recur','default_membership_auto_renew') as $setting) {
     if (!empty($page_settings[$setting])) {
       $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
@@ -469,6 +398,20 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
+    // set the price field class names for use by the js, defaulting to the 'canonical' naming
+    $nice_recur_names = ['monthly_gift','other_amount','one_time_gift','other_one_time_amount'];
+    $nice_recur_settings = [];
+    foreach($nice_recur_names as $machine_name) {
+      $setting = 'name_'.$machine_name;
+      $nice_recur_settings[$machine_name.'_section'] = '.' . (empty($page_settings[$setting]) ? $machine_name : $page_settings[$setting]) . '-section';
+    }
+    contributionrecur_civicrm_varset($nice_recur_settings);
+  }
+  if (!empty($settings['default_membership_auto_renew'])) {
+    // If the default_membership_auto_renew setting is on, alter the default value in the form
+    $form->setDefaults(array('auto_renew' => 1)); // make recurring contrib default to true
+    contributionrecur_civicrm_varset(array('defaultMembershipAutoRenew' => '1'));
+    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/defaultMembershipAutoRenew.js');
   }
   if (!empty($settings['default_recur'])) {
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
@@ -482,11 +425,11 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if ((max($allow_days) > 0) || !empty($settings['force_recur'])) {
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
   }
-   
+
 }
 
-/* 
- * add some functionality to the update subscription form for recurring contributions 
+/*
+ * add some functionality to the update subscription form for recurring contributions
  *
  * Todo: make the available new fields configurable
  */
@@ -509,20 +452,20 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   /* get the recurring contribution record and the contact record, or quit */
   try {
     $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
-  } 
+  }
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
   try {
     $contact = civicrm_api3('Contact', 'getsingle', array('id' => $recur['contact_id']));
-  } 
+  }
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
   // turn off default notification checkbox, most will want to hide it as well.
   $defaults = array('is_notify' => 0);
   $edit_fields = array(
-    'contribution_status_id' => 'Status', 
+    'contribution_status_id' => 'Status',
     'next_sched_contribution_date' => 'Next Scheduled Contribution',
     'start_date' => 'Start Date',
   );
@@ -532,7 +475,7 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
     }
     else {
       $defaults[$fid] = $recur[$fid];
-    } 
+    }
   }
   if (0 == count($edit_fields)) { // assume everything is taken care of
     return;
@@ -580,18 +523,18 @@ function contributionrecur_CRM_Contribute_Form_Search(&$form) {
  * Display extra info on the recurring contribution view
  */
 function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) {
-  // get the recurring contribution record or quit 
+  // get the recurring contribution record or quit
   $crid = CRM_Utils_Request::retrieve('id', 'Integer', $page, FALSE);
   try {
     $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
-  } 
+  }
   catch (CiviCRM_API3_Exception $e) {
     return;
   }
   // add the 'generate ad hoc contribution form' link
   $template = CRM_Core_Smarty::singleton();
   $adHocContributionLink = CRM_Utils_System::url('civicrm/contact/contributionrecur_adhoc', 'reset=1&cid='.$recur['contact_id'].'&paymentProcessorId='.$recur['payment_processor_id'].'&crid='.$crid.'&is_test='.$recur['is_test']);
-  $template->assign('adHocContributionLink', 
+  $template->assign('adHocContributionLink',
     '<a href="'.$adHocContributionLink.'">Generate</a>'
   );
   CRM_Core_Region::instance('page-body')->add(array(
@@ -606,7 +549,7 @@ function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
   $contactId = CRM_Utils_Request::retrieve('cid', 'Positive');
   $recur_edit_url = CRM_Utils_System::url('civicrm/contribute/updaterecur','reset=1&action=update&context=contribution&cid='.$contactId.'&crid=');
   contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
-} 
+}
 
 /**
  * Implement hook_civicrm_searchTasks()
@@ -717,4 +660,96 @@ function contributionrecur_civicrm_tabset($tabsetName, &$tabs, $context) {
       array_slice($tabs, 4)
     );
   }
-} 
+}
+
+// /**
+//  * Implements hook_civicrm_postInstall().
+//  *
+//  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
+//  */
+// function contributionrecur_civicrm_postInstall() {
+//   _contributionrecur_civix_civicrm_postInstall();
+// }
+
+// /**
+//  * Implements hook_civicrm_entityTypes().
+//  *
+//  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
+//  */
+// function contributionrecur_civicrm_entityTypes(&$entityTypes) {
+//   _contributionrecur_civix_civicrm_entityTypes($entityTypes);
+// }
+//
+
+use Symfony\Component\Config\Resource\FileResource;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+/**
+ * Add token services to the container.
+ *
+ * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+ */
+function contributionrecur_civicrm_container(ContainerBuilder $container) {
+  $container->addResource(new FileResource(__FILE__));
+  $container->findDefinition('dispatcher')->addMethodCall('addListener',
+    ['civi.token.list', 'contributionrecur_register_tokens']
+  )->setPublic(TRUE);
+  $container->findDefinition('dispatcher')->addMethodCall('addListener',
+    ['civi.token.eval', 'contributionrecur_evaluate_tokens']
+  )->setPublic(TRUE);
+}
+
+
+/*
+ * contributionrecur_getFields()
+ *
+ * utility function to list the available fields in a contribution_recur record
+ * keys is an array of which properties of the fields to get, e.g. 'name'
+ * as the machine name and 'title' as the label.
+ */
+function contributionrecur_getFields($keys) {
+  $fields = \Civi\Api4\ContributionRecur::getFields();
+  foreach($keys as $key) {
+    $fields->addSelect($key);
+  }
+  return $fields->execute();
+}
+
+function contributionrecur_register_tokens(\Civi\Token\Event\TokenRegisterEvent $e) {
+  $contribution_recur = $e->entity('contribution_recur');
+  foreach (contributionrecur_getFields(['name','title']) as $field) {
+    $contribution_recur->register($field['name'],$field['title']);
+  }
+}
+
+/*
+ * Provide values from the recurring contribution that is 'in progress' that is next scheduled to run
+ */
+
+function contributionrecur_evaluate_tokens(\Civi\Token\Event\TokenValueEvent $e) {
+  foreach ($e->getRows() as $row) {
+    $contactId = $row->context['contactId'];
+    $contributionRecur = \Civi\Api4\ContributionRecur::get()
+      ->addWhere('contact_id', '=', $contactId)
+      ->addWhere('contribution_status_id:name', '=', 'In Progress')
+      ->addWhere('next_sched_contribution_date', '>', 'NOW')
+      ->addOrderBy('next_sched_contribution_date', 'ASC')
+      ->setLimit(1)
+      ->execute();
+    /** @var TokenRow $row */
+    $row->format('text/html');
+    foreach (contributionrecur_getFields(['name','data_type']) as $field) {
+      $field_name = $field['name'];
+      if (!empty($contributionRecur[0][$field_name])) {
+        switch($field['data_type']) {
+          case 'Timestamp':
+            $value = CRM_Utils_Date::formatDateOnlyLong($contributionRecur[0][$field_name]);
+            break;
+          default:
+            $value = $contributionRecur[0][$field_name];
+        }
+        $row->tokens('contribution_recur', $field_name, $value);
+      }
+    }
+  }
+}

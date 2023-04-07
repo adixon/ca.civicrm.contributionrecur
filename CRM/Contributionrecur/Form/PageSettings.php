@@ -60,6 +60,24 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
       'default_recur', // field name
       ts('Default the recurring checkbox to checked, but allow users to uncheck it.'),
       $options
+      'text',
+      'name_monthly_gift',
+      ts('Machine name for monthly gift amount price field.'),
+    );
+    $this->add(
+      'text',
+      'name_other_amount',
+      ts('Machine name for other monthly gift amount price field.'),
+    );
+    $this->add(
+      'text',
+      'name_one_time_gift',
+      ts('Machine name for one-time gift price field.'),
+    );
+    $this->add(
+      'text',
+      'name_other_one_time_amount',
+      ts('Machine name for other one-time gift amount price field.'),
     );
     /* $this->addButtons(array(
       array(
@@ -68,6 +86,12 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
         'isDefault' => TRUE,
       ),
     )); */
+    $this->add(
+      'select', // field type
+      'default_membership_auto_renew', // field name
+      ts('Modify default membership auto-renew to "on"'),
+      $options
+    );
 
     $this->assign('elementNames', $this->getRenderableElementNames());
 
@@ -87,6 +111,11 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
       'force_recur' => $values['force_recur'], 
       'nice_recur' => $values['nice_recur'], 
       'default_recur' => $values['default_recur'],
+      'name_monthly_gift' => strtolower(CRM_Utils_String::munge($values['name_monthly_gift'], '_')),
+      'name_other_amount' => strtolower(CRM_Utils_String::munge($values['name_other_amount'], '_')),
+      'name_one_time_gift' => strtolower(CRM_Utils_String::munge($values['name_one_time_gift'], '_')),
+      'name_other_one_time_amount' => strtolower(CRM_Utils_String::munge($values['name_other_one_time_amount'], '_')),
+      'default_membership_auto_renew' => $values['default_membership_auto_renew'],
     );
     // Source
     $page_id = $this->_id;

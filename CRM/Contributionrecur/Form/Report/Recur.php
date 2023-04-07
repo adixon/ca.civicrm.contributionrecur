@@ -1,62 +1,29 @@
 <?php
-/*
- +--------------------------------------------------------------------+
- | CiviCRM version 4.4                                                |
- +--------------------------------------------------------------------+
- | Copyright CiviCRM LLC (c) 2004-2013                                |
- +--------------------------------------------------------------------+
- | This file is a part of CiviCRM.                                    |
- |                                                                    |
- | CiviCRM is free software; you can copy, modify, and distribute it  |
- | under the terms of the GNU Affero General Public License           |
- | Version 3, 19 November 2007 and the CiviCRM Licensing Exception.   |
- |                                                                    |
- | CiviCRM is distributed in the hope that it will be useful, but     |
- | WITHOUT ANY WARRANTY; without even the implied warranty of         |
- | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               |
- | See the GNU Affero General Public License for more details.        |
- |                                                                    |
- | You should have received a copy of the GNU Affero General Public   |
- | License and the CiviCRM Licensing Exception along                  |
- | with this program; if not, contact CiviCRM LLC                     |
- | at info[AT]civicrm[DOT]org. If you have questions about the        |
- | GNU Affero General Public License or the licensing of CiviCRM,     |
- | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
- +--------------------------------------------------------------------+
-*/
-
 /**
  *
  * @package CRM
- * @copyright CiviCRM LLC (c) 2004-2013
- * $Id$
  *
  */
+
 class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
-  protected $_customGroupExtends = array('Contact');
+  protected $_customGroupExtends = array('Contact', 'Membership');
 
-  static private $nscd_fid = '';
   static private $processors = array();
-  static private $version = array();
+  // static private $version = array();
   static private $financial_types = array();
   static private $prefixes = array();
   static private $contributionStatus = array();
+  static private $membershipStatus = array();
 
   function __construct() {
 
-    self::$nscd_fid = _contributionrecur_civicrm_nscd_fid();
-    self::$version = _contributionrecur_civicrm_domain_info('version');
-    self::$financial_types = (self::$version[0] <= 4 && self::$version[1] <= 2) ? array() : CRM_Contribute_PseudoConstant::financialType();
-    if (self::$version[0] <= 4 && self::$version[1] < 4) {
-      self::$prefixes = CRM_Core_PseudoConstant::individualPrefix();
-      self::$contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus();
-    }
-    else {
-      self::$prefixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id');
-      self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
-    }
-      
+    // self::$version = _contributionrecur_civicrm_domain_info('version');
+    self::$financial_types = CRM_Contribute_PseudoConstant::financialType();
+    self::$prefixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id');
+    self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
+    self::$membershipStatus = CRM_Member_PseudoConstant::membershipStatus();
+
     $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
     $result = civicrm_api('PaymentProcessor', 'get', $params);
     foreach($result['values'] as $pp) {
@@ -149,6 +116,45 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
         ),
       ),
+      'civicrm_membership' => array(
+        'dao' => 'CRM_Member_DAO_Membership',
+        'fields' => array(
+          'id' => array(
+            'no_display' => TRUE,
+            'required' => TRUE,
+          ),
+          'join_date' => array(
+            'title' => ts('Membership Join Date'),
+          ),
+          'start_date' => array(
+            'title' => ts('Membership Start Date'),
+          ),
+          'end_date' => array(
+            'title' => ts('Membership End Date'),
+          ),
+          'status_id' => array(
+            'title' => ts('Membership Status'),
+          ),
+        ),
+        'filters' => array(
+          'end_date' => array(
+            'title' => ts('Membership End Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'type' => CRM_Utils_Type::T_DATE,
+          ),
+        ),
+        'order_bys' => array(
+          'join_date' => array(
+            'title' => ts('Membership Join Date'),
+          ),
+          'start_date' => array(
+            'title' => ts('Membership Start Date'),
+          ),
+          'end_date' => array(
+            'title' => ts('Membership End Date'),
+          ),
+        ),
+      ),
       'civicrm_contribution_recur' => array(
         'dao' => 'CRM_Contribute_DAO_ContributionRecur',
         'order_bys' => array(
@@ -164,7 +170,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'modified_date' => array(
             'title' => ts('Modified Date'),
           ),
-          self::$nscd_fid  => array(
+          'next_sched_contribution_date'  => array(
             'title' => ts('Next Scheduled Contribution Date'),
           ),
           'cycle_day'  => array(
@@ -198,7 +204,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'default' => TRUE,
           ),
           'contribution_status_id' => array(
-            'title' => ts('Donation Status'),
+            'title' => ts('Recurring Donation Status'),
           ),
           'frequency_interval' => array(
             'title' => ts('Frequency interval'),
@@ -224,11 +230,11 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           'cancel_date' => array(
             'title' => ts('Cancel Date'),
           ),
-          self::$nscd_fid => array(
+          'next_sched_contribution_date' => array(
             'title' => ts('Next Scheduled Contribution Date'),
           ),
           'next_scheduled_day'  => array(
-            'name' => self::$nscd_fid,
+            'name' => 'next_sched_contribution_date',
             'dbAlias' => 'DAYOFMONTH(contribution_recur_civireport.next_sched_contribution_date)',
             'title' => ts('Next Scheduled Day of the Month'),
           ),
@@ -286,7 +292,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' =>  CRM_Core_OptionGroup::values('recur_frequency_units'),
           ),
-          self::$nscd_fid  => array(
+          'next_sched_contribution_date'  => array(
             'title' => ts('Next Scheduled Contribution Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
@@ -323,43 +329,7 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
           ),
         ),
       ),
-      'civicrm_address' => array(
-        'dao' => 'CRM_Core_DAO_Address',
-        'fields' => array(
-          'street_address' => array(
-            'title' => ts('Address'),
-            'default' => FALSE,
-          ),
-          'supplemental_address_1' => array(
-            'title' => ts('Supplementary Address Field 1'),
-            'default' => FALSE,
-          ),
-          'supplemental_address_2' => array(
-            'title' => ts('Supplementary Address Field 2'),
-            'default' => FALSE,
-          ),
-          'city' => array(
-            'title' => 'City',
-            'default' => FALSE,
-          ),
-          'state_province_id' => array(
-            'title' => 'Province',
-            'default' => FALSE,
-            'alter_display' => 'alterStateProvinceID',
-          ),
-          'postal_code' => array(
-            'title' => 'Postal Code',
-            'default' => FALSE,
-          ),
-          'country_id' => array(
-            'title' => 'Country',
-            'default' => FALSE,
-            'alter_display' => 'alterCountryID',
-          ),
-        ),
-        'grouping' => 'contact-fields',
-      ),
-    );
+    )  + $this->addAddressFields();
     if (empty(self::$financial_types)) {
       unset($this->_columns['civicrm_contribution_recur']['filters']['financial_type_id']);
     }
@@ -378,16 +348,14 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       LEFT JOIN civicrm_contribution  {$this->_aliases['civicrm_contribution']}
         ON ({$this->_aliases['civicrm_contribution_recur']}.id = {$this->_aliases['civicrm_contribution']}.contribution_recur_id AND 1 = {$this->_aliases['civicrm_contribution']}.contribution_status_id)";
     $this->_from .= "
-      LEFT JOIN civicrm_email  {$this->_aliases['civicrm_email']}
-        ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_email']}.contact_id";
+      LEFT JOIN civicrm_membership_payment 
+        ON {$this->_aliases['civicrm_contribution']}.id = civicrm_membership_payment.contribution_id";
     $this->_from .= "
-      LEFT JOIN civicrm_address {$this->_aliases['civicrm_address']}
-        ON ({$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_address']}.contact_id AND
-          {$this->_aliases['civicrm_address']}.is_primary = 1 )";
-    $this->_from .= "
-      LEFT  JOIN civicrm_phone {$this->_aliases['civicrm_phone']}
-        ON ({$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_phone']}.contact_id AND
-       {$this->_aliases['civicrm_phone']}.is_primary = 1)";
+      LEFT JOIN civicrm_membership  {$this->_aliases['civicrm_membership']}
+        ON civicrm_membership_payment.membership_id = {$this->_aliases['civicrm_membership']}.id";
+    $this->joinAddressFromContact();
+    $this->joinPhoneFromContact();
+    $this->joinEmailFromContact();
   }
 
   function groupBy() {
@@ -412,6 +380,10 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       // handle contribution status id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_contribution_status_id', $row)) {
         $rows[$rowNum]['civicrm_contribution_recur_contribution_status_id'] = self::$contributionStatus[$value];
+      }
+      // handle membership status id
+      if ($value = CRM_Utils_Array::value('civicrm_membership_status_id', $row)) {
+        $rows[$rowNum]['civicrm_membership_status_id'] = self::$membershipStatus[$value];
       }
       // handle processor id
       if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_payment_processor_id', $row)) {
