@@ -32,6 +32,11 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     );
     $this->add(
       'checkbox', // field type
+      'default_recur', // field name
+      ts('Default the "recurring contribution" checkbox to "true" but allow users to uncheck it.')
+    );
+    $this->add(
+      'checkbox', // field type
       'nice_recur', // field name
       ts('Add a nice js-based recurring/non-recurring switcher')
     );

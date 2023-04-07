@@ -382,7 +382,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
   $page_id = $form->getVar('_id');
   $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
-  foreach(array('force_recur','nice_recur','default_membership_auto_renew') as $setting) {
+  foreach(array('default_recur','force_recur','nice_recur','default_membership_auto_renew') as $setting) {
     if (!empty($page_settings[$setting])) {
       $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
@@ -412,6 +412,9 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     $form->setDefaults(array('auto_renew' => 1)); // make recurring contrib default to true
     contributionrecur_civicrm_varset(array('defaultMembershipAutoRenew' => '1'));
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/defaultMembershipAutoRenew.js');
+  }
+  if (!empty($settings['default_recur'])) {
+    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
   }
   // if the site administrator has resticted the recurring days
   $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];

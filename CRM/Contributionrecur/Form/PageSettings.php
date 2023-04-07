@@ -56,6 +56,10 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
       $options
     );
     $this->add(
+      'select', // field type
+      'default_recur', // field name
+      ts('Default the recurring checkbox to checked, but allow users to uncheck it.'),
+      $options
       'text',
       'name_monthly_gift',
       ts('Machine name for monthly gift amount price field.'),
@@ -106,6 +110,7 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
     $settings = array(
       'force_recur' => $values['force_recur'], 
       'nice_recur' => $values['nice_recur'], 
+      'default_recur' => $values['default_recur'],
       'name_monthly_gift' => strtolower(CRM_Utils_String::munge($values['name_monthly_gift'], '_')),
       'name_other_amount' => strtolower(CRM_Utils_String::munge($values['name_other_amount'], '_')),
       'name_one_time_gift' => strtolower(CRM_Utils_String::munge($values['name_one_time_gift'], '_')),
