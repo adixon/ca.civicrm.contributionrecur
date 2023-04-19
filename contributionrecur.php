@@ -708,7 +708,7 @@ function contributionrecur_civicrm_container(ContainerBuilder $container) {
  * as the machine name and 'title' as the label.
  */
 function contributionrecur_getFields($keys) {
-  $fields = \Civi\Api4\ContributionRecur::getFields();
+  $fields = \Civi\Api4\ContributionRecur::getFields(FALSE);
   foreach($keys as $key) {
     $fields->addSelect($key);
   }
@@ -729,7 +729,7 @@ function contributionrecur_register_tokens(\Civi\Token\Event\TokenRegisterEvent 
 function contributionrecur_evaluate_tokens(\Civi\Token\Event\TokenValueEvent $e) {
   foreach ($e->getRows() as $row) {
     $contactId = $row->context['contactId'];
-    $contributionRecur = \Civi\Api4\ContributionRecur::get()
+    $contributionRecur = \Civi\Api4\ContributionRecur::get(FALSE)
       ->addWhere('contact_id', '=', $contactId)
       ->addWhere('contribution_status_id:name', '=', 'In Progress')
       ->addWhere('next_sched_contribution_date', '>', 'NOW')
