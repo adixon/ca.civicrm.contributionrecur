@@ -166,6 +166,7 @@ function contributionrecur_civicrm_pageRun(&$page) {
  * hook_civicrm_pre
  *
  * Intervene before recurring contribution records are created or edited, but only for my dummy processors.
+ * Or if I'm doing extra logging.
  *
  * If the recurring days restriction settings are configured, then push the next scheduled contribution date forward to the first allowable one.
  * TODO: should there be cases where the next scheduled contribution is pulled forward? E.g. if it's still the next month and at least 15 days?
@@ -176,7 +177,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   // watchdog('civicrm','hook_civicrm_pre for '.$objectName.' <pre>@params</pre>',array('@params' => print_r($params,TRUE)));
   switch($objectName) {
   case 'ContributionRecur':
-      $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
+      $settings = Civi::settings()->get('contributionrecur_settings');
       if (!empty($params['payment_processor_id'])) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
