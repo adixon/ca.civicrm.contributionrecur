@@ -45,6 +45,11 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       'default_membership_auto_renew', // field name
       ts('Modify default membership auto-renew to "on"')
     );
+    $this->add(
+      'checkbox', // field type
+      'recur_amount_change_activity', // field name
+      ts('Create activities for changes to the amount in the recurring contribution table.')
+    );
     // allow selection of activity type for implicit membership renewal 
     $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
     $activity_types = array('0' => '-- none --');
@@ -99,7 +104,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
         unset($values[$key]);
       }
     } 
-    CRM_Core_BAO_Setting::setItem($values, 'Recurring Contributions Extension', 'contributionrecur_settings');
+    Civi::settings()->set('contributionrecur_settings', $values);
     parent::postProcess();
   }
 

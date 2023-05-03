@@ -178,6 +178,10 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   switch($objectName) {
   case 'ContributionRecur':
       $settings = Civi::settings()->get('contributionrecur_settings');
+      if (('edit' == $op) && $settings['recur_amount_change_activity']) {
+	// CRM_Core_Error::debug_var('objectId of recur edit', $objectId);
+        CRM_Core_Error::debug_var('ContributionRecur edit', $params);
+      }
       if (!empty($params['payment_processor_id'])) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
@@ -212,11 +216,11 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
       }
       break;
     case 'Contribution':
-      if (!empty($params['contribution_recur_id'])) {
+      if ('create' == $op && !empty($params['contribution_recur_id'])) {
         $pp_id = _contributionrecur_payment_processor_id($params['contribution_recur_id']);
         if ($pp_id) {
           $class_name = _contributionrecur_pp_info($pp_id,'class_name');
-          if ('create' == $op && 'Payment_RecurOffline' == substr($class_name,0,20)) {
+          if ('Payment_RecurOffline' == substr($class_name,0,20)) {
             if ('Payment_RecurOfflineACHEFT' == $class_name) {
               $params['payment_instrument_id'] = 5;
             }
