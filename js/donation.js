@@ -14,6 +14,8 @@ CRM.$(function ($) {
     $('.crm-contribution-main-form-block').has('#intro_text').before($('#intro_text'));
   }
   $('#priceset-div').before('<div class="gift-type-select"><div id="monthly-gift"><label>Monthly Gift</label></div><div id="one-time-gift"><label>One-time Gift</label></div></div>');
+  $('#pricesetTotal').hide();
+
   if ($('#is_recur').prop('checked')) {
     setRecur();
   }
