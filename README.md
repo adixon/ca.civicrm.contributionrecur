@@ -63,7 +63,9 @@ Here's how to set this up:
 3. To add a recurring contribution, go to the Contact Contributions tab and use **Submit Credit Card Contribution** (or the same can be done on the front end).
 4. Enter the details as usual, selecting your dummy processor.
 
-When you save, the first contribution will be created as completed and then pending contributions will be created on the schedule you've chosen. If you want to edit the next scheduled recurring date for the recurring contribution, go to Administer > CiviContribute > Recurring Contributions Settings and enable to **Enable extra edit fields for recurring contributions**. You can also enable **Complete generated contributions** if you want completed contributions instead of pending ones.
+When you save, the first contribution will be created as completed and then pending contributions will be created on the schedule you've chosen. If you want to edit the next scheduled recurring date for the recurring contribution, go to Administer > CiviContribute > Recurring Contributions Settings and enable to **Enable extra edit fields for recurring contributions**. Warning: If you create a contribution with a start date in the future, the next scheduled contribution will be one recurring period after the date you created the contribution, not the start date.
+
+You can also enable **Complete generated contributions** if you want completed contributions instead of pending ones.
 
 These also integrate with the restrict recurring days options above, for example.
 
