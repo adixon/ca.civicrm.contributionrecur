@@ -124,7 +124,8 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
 
     // CRM_Core_Error::debug_var('values', $values);
     CRM_Core_BAO_Setting::setItem($settings, 'Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
-    parent::endPostProcess();
+    // parent::endPostProcess();
+    $this->controller->_destination = CRM_Utils_System::url('civicrm/admin/contribute/recur', 'reset=1&action=update&id='.$page_id);
   }
 
   /**
