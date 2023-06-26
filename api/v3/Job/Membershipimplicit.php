@@ -123,7 +123,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         $contacts[$dao->contact_id] = array();
       } 
       // use the contribution id as a key to order them as input
-      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao-->contribution_status_id, 'applied' => 0);
+      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao->contribution_status_id, 'applied' => 0);
     }
     // also deal with the possibility that the membership_payment records got created but no membership renewal happened
     /*
