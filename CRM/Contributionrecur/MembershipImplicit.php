@@ -170,7 +170,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
       );
     }
     // regardless, also create the activity that gets used when measuring membership change, etc.
-    civicrm_api3('Activity', 'create', array(
+    civicrm_api3('Activity', 'create', [
       'version'       => 3,
       'activity_type_id'  => 'Membership Renewal',
       'source_contact_id'   => $contact_id,
@@ -178,7 +178,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
       'subject'       => 'Implicit membership renewal',
       'status_id'       => 'Completed',
       'activity_date_time'  => $contribution['receive_date'],
-    );
+    ]);
   }
   return $return;
 }
