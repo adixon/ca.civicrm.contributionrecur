@@ -699,7 +699,6 @@ function contributionrecur_civicrm_container(ContainerBuilder $container) {
   )->setPublic(TRUE);
 }
 
-
 /*
  * contributionrecur_getFields()
  *
