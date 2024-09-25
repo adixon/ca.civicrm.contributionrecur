@@ -35,6 +35,27 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
     return $defaults;
   }
 
+  public function getPriceFieldNames() {
+    $page_id = $this->_id;
+    $price_field_names = ['' => '-- None --'];
+    $price_set = \Civi\Api4\PriceSetEntity::get(FALSE)->addSelect('price_set_id')
+      ->addWhere('entity_table', '=', 'civicrm_contribution_page')
+      ->addWhere('entity_id', '=', $page_id)
+      ->execute()
+      ->first();
+    if (!empty($price_set)) {
+      $priceFields = \Civi\Api4\PriceField::get(FALSE)
+        ->addSelect('label', 'name')
+        ->addWhere('price_set_id', '=', $price_set['price_set_id'])
+        ->execute();
+      foreach ($priceFields as $priceField) {
+        // price_field_names for selection with the name as the key
+        $price_field_names[$priceField['name']] = $priceField['label'];
+      }
+    }
+    return $price_field_names;
+  }
+
   /**
    * Build the form object.
    *
@@ -43,6 +64,7 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
   public function buildQuickForm() {
     $this->_last = TRUE;
     $options = array('0' => 'default', '1' => 'Yes', '-1' => 'No');
+    $price_fields =  $this->getPriceFieldNames();
     $this->add(
       'select', // field type
       'force_recur', // field name
@@ -62,24 +84,28 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
       $options
     );
     $this->add(
-      'text',
+      'select',
       'name_monthly_gift',
       ts('Machine name for monthly gift amount price field.'),
+      $price_fields,
     );
     $this->add(
-      'text',
+      'select',
       'name_other_amount',
       ts('Machine name for other monthly gift amount price field.'),
+      $price_fields,
     );
     $this->add(
-      'text',
+      'select',
       'name_one_time_gift',
       ts('Machine name for one-time gift price field.'),
+      $price_fields,
     );
     $this->add(
-      'text',
+      'select',
       'name_other_one_time_amount',
       ts('Machine name for other one-time gift amount price field.'),
+      $price_fields,
     );
     /* $this->addButtons(array(
       array(
