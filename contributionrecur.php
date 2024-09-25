@@ -174,9 +174,9 @@ function contributionrecur_civicrm_pageRun(&$page) {
 function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
   // since this function gets called a lot, quickly determine if I care about the record being created
   // watchdog('civicrm','hook_civicrm_pre for '.$objectName.' <pre>@params</pre>',array('@params' => print_r($params,TRUE)));
+  $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
   switch($objectName) {
-  case 'ContributionRecur':
-      $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
+    case 'ContributionRecur':
       if (!empty($params['payment_processor_id'])) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
@@ -194,7 +194,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
             }
           }
           if (!empty($params['next_sched_contribution_date'])) {
-            $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+            $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
             if (0 < max($allow_days)) {
               $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
               $from_time = _contributionrecur_next($init_time,$allow_days);
@@ -206,7 +206,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
       if (empty($params['installments'])) {
         $params['installments'] = '0';
       }
-      if (!empty($settings['no_receipts'])) {
+      if (!empty($contributionrecur_settings['no_receipts'])) {
         $params['is_email_receipt'] = 0;
       }
       break;
@@ -219,8 +219,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
             if ('Payment_RecurOfflineACHEFT' == $class_name) {
               $params['payment_instrument_id'] = 5;
             }
-            $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-            $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+            $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
             if (0 < max($allow_days)) {
               $from_time = _contributionrecur_next(strtotime($params['receive_date']),$allow_days);
               $params['receive_date'] = date('Ymd', $from_time).'030000';
@@ -379,22 +378,22 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     return;
   }
   // get the default settings as well as the individual per-page settings
-  $settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
+  $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
   $page_id = $form->getVar('_id');
-  $page_settings = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
+  $page_settings = Civi::settings()->get('contributionrecur_settings_'.$page_id);
   foreach(array('default_recur','force_recur','nice_recur','default_membership_auto_renew') as $setting) {
     if (!empty($page_settings[$setting])) {
-      $settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
+      $contributionrecur_settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
   }
   // if the site administrator has enabled forced recurring pages
-  if (!empty($settings['force_recur'])) {
+  if (!empty($contributionrecur_settings['force_recur'])) {
     // If a form enables recurring, and the force_recur setting is on, set recurring to the default and required
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
     $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
     contributionrecur_civicrm_varset(array('forceRecur' => '1'));
   }
-  elseif (!empty($settings['nice_recur'])) {
+  elseif (!empty($contributionrecur_settings['nice_recur'])) {
     CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
@@ -407,22 +406,22 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
     }
     contributionrecur_civicrm_varset($nice_recur_settings);
   }
-  if (!empty($settings['default_membership_auto_renew'])) {
+  if (!empty($contributionrecur_settings['default_membership_auto_renew'])) {
     // If the default_membership_auto_renew setting is on, alter the default value in the form
     $form->setDefaults(array('auto_renew' => 1)); // make recurring contrib default to true
     contributionrecur_civicrm_varset(array('defaultMembershipAutoRenew' => '1'));
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/defaultMembershipAutoRenew.js');
   }
-  if (!empty($settings['default_recur'])) {
+  if (!empty($contributionrecur_settings['default_recur'])) {
     $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
   }
   // if the site administrator has resticted the recurring days
-  $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+  $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
   if (max($allow_days) > 0) {
     $next_time = _contributionrecur_next(strtotime('+1 day'),$allow_days);
     contributionrecur_civicrm_varset(array('nextDate' => date('Y-m-d', $next_time)));
   }
-  if ((max($allow_days) > 0) || !empty($settings['force_recur'])) {
+  if ((max($allow_days) > 0) || !empty($contributionrecur_settings['force_recur'])) {
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
   }
 
@@ -438,12 +437,12 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   if (!CRM_Core_Permission::check('edit contributions')) {
     return;
   }
-  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
   // don't do this unless the site administrator has enabled it
-  if (empty($settings['edit_extra'])) {
+  if (empty($contributionrecur_settings['edit_extra'])) {
     return;
   }
-  $allow_days = empty($settings['days']) ? array('-1') : $settings['days'];
+  $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
   if (0 < max($allow_days)) {
     $userAlert = ts('Your next scheduled contribution date will automatically be updated to the next allowable day of the month: %1',array(1 => implode(',',$allow_days)));
     CRM_Core_Session::setStatus($userAlert, ts('Warning'), 'alert');
