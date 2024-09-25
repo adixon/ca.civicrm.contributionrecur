@@ -396,7 +396,6 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   elseif (!empty($contributionrecur_settings['nice_recur'])) {
     CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
-    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
     // set the price field class names for use by the js, defaulting to the 'canonical' naming
     $nice_recur_names = ['monthly_gift','other_amount','one_time_gift','other_one_time_amount'];
     $nice_recur_settings = [];
