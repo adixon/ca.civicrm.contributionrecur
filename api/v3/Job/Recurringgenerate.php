@@ -58,9 +58,9 @@ function civicrm_api3_job_recurringgenerate($params) {
   unset($params['catchup']);
   $domemberships = empty($params['ignoremembership']);
   unset($params['ignoremembership']);
-  $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  $contributionrecur_settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
   // new contributions are either complete or left pending, default pending
-  $new_contribution_status_id = empty($settings['complete']) ? 2 : 1;
+  $new_contribution_status_id = empty($contributionrecur_settings['complete']) ? 2 : 1;
   // running this job in parallell could generate bad duplicate contributions
   $lock = new CRM_Core_Lock('civimail.job.Recurringgenerate');
   $update = array();

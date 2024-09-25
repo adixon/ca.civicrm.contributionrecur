@@ -156,8 +156,8 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
   }
   if (!empty($membership['id'])) {
     // see if we should be generating an activity record
-    $settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
-    $activity_type_id = $settings['activity_type_id'];
+    $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
+    $activity_type_id = $contributionrecur_settings['activity_type_id'];
     if ($activity_type_id > 0) {
       civicrm_api3('Activity', 'create', array(
         'version'       => 3,
