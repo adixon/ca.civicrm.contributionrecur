@@ -109,7 +109,7 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
   public function postProcess() {
     // get the submitted form values.
     $values = $this->controller->exportValues($this->_name);
-    $settings = array(
+    $contributionrecur_settings = array(
       'force_recur' => $values['force_recur'], 
       'nice_recur' => $values['nice_recur'], 
       'default_recur' => $values['default_recur'],
@@ -123,7 +123,7 @@ class CRM_Contributionrecur_Form_PageSettings extends CRM_Contribute_Form_Contri
     $page_id = $this->_id;
 
     // CRM_Core_Error::debug_var('values', $values);
-    CRM_Core_BAO_Setting::setItem($settings, 'Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
+    CRM_Core_BAO_Setting::setItem($contributionrecur_settings, 'Recurring Contributions Extension', 'contributionrecur_settings_'.$page_id);
     // parent::endPostProcess();
     $this->controller->_destination = CRM_Utils_System::url('civicrm/admin/contribute/recur', 'reset=1&action=update&id='.$page_id);
   }
