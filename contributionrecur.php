@@ -314,12 +314,16 @@ function _contributionrecur_pp_info($payment_processor_id, $return, $class_name 
   try {
     $result = civicrm_api('PaymentProcessor', 'getvalue', $params);
     // \Civi::log()->debug("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, result: " . var_export($result, true));
+    if (empty($result)) {
+      \Civi::log()->error("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, result is empty");
+      $result = FALSE;
+    }
   }
   catch (CiviCRM_API3_Exception $e) {
     \Civi::log()->error("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, Exception: $e");
     $result = FALSE;
   }
-  return empty($result) ? FALSE : $result;
+  return $result;
 }
 
 /*
