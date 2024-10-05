@@ -283,12 +283,16 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
   try {
     $result = civicrm_api3('ContributionRecur', 'getvalue', $params);
     // \Civi::log()->debug("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, result: " . var_export($result, true));
+    if (empty($result)) {
+      \Civi::log()->error("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, result is empty");
+      $result = FALSE;
+    }
   }
   catch (CiviCRM_API3_Exception $e) {
     \Civi::log()->error("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, Exception: $e");
     $result = FALSE;
   }
-  return empty($result) ? FALSE : $result;
+  return $result;
 }
 
 /*
