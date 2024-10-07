@@ -180,25 +180,27 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
       if (!empty($params['payment_processor_id'])) {
         $pp_id = $params['payment_processor_id'];
         $class_name = _contributionrecur_pp_info($pp_id,'class_name');
-        // watchdog('civicrm','hook_civicrm_pre class name = <pre>'.print_r($class_name,TRUE).'</pre>');
-        if ('Payment_RecurOffline' == substr($class_name,0,20)) {
-          if ('create' == $op) {
-            if (5 != $params['contribution_status_id'] && empty($params['next_sched_contribution_date'])) {
-              $params['contribution_status_id'] = 5;
-              // $params['trxn_id'] = NULL;
-              $next = strtotime('+'.$params['frequency_interval'].' '.$params['frequency_unit']);
-              $params['next_sched_contribution_date'] = date('YmdHis',$next);
+        if ($class_name) {
+          // watchdog('civicrm','hook_civicrm_pre class name = <pre>'.print_r($class_name,TRUE).'</pre>');
+          if ('Payment_RecurOffline' == substr($class_name,0,20)) {
+            if ('create' == $op) {
+              if (5 != $params['contribution_status_id'] && empty($params['next_sched_contribution_date'])) {
+                $params['contribution_status_id'] = 5;
+                // $params['trxn_id'] = NULL;
+                $next = strtotime('+'.$params['frequency_interval'].' '.$params['frequency_unit']);
+                $params['next_sched_contribution_date'] = date('YmdHis',$next);
+              }
+              if ('Payment_RecurOfflineACHEFT' == $class_name) {
+                $params['payment_instrument_id'] = 5;
+              }
             }
-            if ('Payment_RecurOfflineACHEFT' == $class_name) {
-              $params['payment_instrument_id'] = 5;
-            }
-          }
-          if (!empty($params['next_sched_contribution_date'])) {
-            $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
-            if (0 < max($allow_days)) {
-              $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
-              $from_time = _contributionrecur_next($init_time,$allow_days);
-              $params['next_sched_contribution_date'] = date('YmdHis', $from_time);
+            if (!empty($params['next_sched_contribution_date'])) {
+              $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
+              if (0 < max($allow_days)) {
+                $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
+                $from_time = _contributionrecur_next($init_time,$allow_days);
+                $params['next_sched_contribution_date'] = date('YmdHis', $from_time);
+              }
             }
           }
         }
@@ -215,14 +217,16 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
         $pp_id = _contributionrecur_payment_processor_id($params['contribution_recur_id']);
         if ($pp_id) {
           $class_name = _contributionrecur_pp_info($pp_id,'class_name');
-          if ('create' == $op && 'Payment_RecurOffline' == substr($class_name,0,20)) {
-            if ('Payment_RecurOfflineACHEFT' == $class_name) {
-              $params['payment_instrument_id'] = 5;
-            }
-            $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
-            if (0 < max($allow_days)) {
-              $from_time = _contributionrecur_next(strtotime($params['receive_date']),$allow_days);
-              $params['receive_date'] = date('Ymd', $from_time).'030000';
+          if ($class_name) {
+            if ('create' == $op && 'Payment_RecurOffline' == substr($class_name,0,20)) {
+              if ('Payment_RecurOfflineACHEFT' == $class_name) {
+                $params['payment_instrument_id'] = 5;
+              }
+              $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
+              if (0 < max($allow_days)) {
+                $from_time = _contributionrecur_next(strtotime($params['receive_date']),$allow_days);
+                $params['receive_date'] = date('Ymd', $from_time).'030000';
+              }
             }
           }
         }
@@ -276,10 +280,17 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
     'id' => $contribution_recur_id,
     'return' => 'payment_processor_id'
   );
-  $result = civicrm_api('ContributionRecur', 'getvalue', $params);
-  if (empty($result)) {
-    return FALSE;
-    // TODO: log error
+  try {
+    $result = civicrm_api3('ContributionRecur', 'getvalue', $params);
+    // \Civi::log()->debug("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, result: " . var_export($result, true));
+    if (empty($result)) {
+      \Civi::log()->error("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, result is empty");
+      $result = FALSE;
+    }
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    \Civi::log()->error("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, Exception: $e");
+    $result = FALSE;
   }
   return $result;
 }
@@ -300,10 +311,17 @@ function _contributionrecur_pp_info($payment_processor_id, $return, $class_name 
   if (!empty($class_name)) {
     $params['class_name'] = $class_name;
   }
-  $result = civicrm_api('PaymentProcessor', 'getvalue', $params);
-  if (empty($result)) {
-    return FALSE;
-    // TODO: log error
+  try {
+    $result = civicrm_api('PaymentProcessor', 'getvalue', $params);
+    // \Civi::log()->debug("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, result: " . var_export($result, true));
+    if (empty($result)) {
+      \Civi::log()->error("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, result is empty");
+      $result = FALSE;
+    }
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    \Civi::log()->error("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, Exception: $e");
+    $result = FALSE;
   }
   return $result;
 }
@@ -341,10 +359,12 @@ function contributionrecur_CRM_Contribute_Form_Contribution(&$form) {
   $pp_id = _contributionrecur_payment_processor_id($recur_id);
   if ($pp_id) {
     $class_name = _contributionrecur_pp_info($pp_id,'class_name');
-    if ('Payment_RecurOffline' == substr($class_name,0,20)) {
-      foreach(array('fee_amount','net_amount') as $elementName) {
-        if ($form->elementExists($elementName)){
-          $form->getElement($elementName)->unfreeze();
+    if ($class_name) {
+      if ('Payment_RecurOffline' == substr($class_name,0,20)) {
+        foreach(array('fee_amount','net_amount') as $elementName) {
+          if ($form->elementExists($elementName)){
+            $form->getElement($elementName)->unfreeze();
+          }
         }
       }
     }
