@@ -6,7 +6,7 @@
 class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
 
   protected $_mode = NULL;
-
+  protected $_settings = [];
   /**
    * Constructor
    *
@@ -17,6 +17,11 @@ class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
   public function __construct($mode, &$paymentProcessor) {
     $this->_mode = $mode;
     $this->_paymentProcessor = $paymentProcessor;
+    $this->_settings = Civi::settings()->get('contributionrecur_settings');
+  }
+
+  public function getBillingAddressFields($billingLocationID = NULL): array {
+    return $this->_settings['no_billing_cc'] ? [] : parent::getBillingAddressFields($billingLocationID);   
   }
 
   /**

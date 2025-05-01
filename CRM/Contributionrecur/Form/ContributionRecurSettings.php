@@ -17,6 +17,16 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     );
     $this->add(
       'checkbox', // field type
+      'no_billing_acheft', // field name
+      ts('Exclude the billing fields for the offline ACHEFT processor')
+    );
+    $this->add(
+      'checkbox', // field type
+      'no_billing_cc', // field name
+      ts('Exclude the billing fields for the offline CC processor')
+    );
+    $this->add(
+      'checkbox', // field type
       'edit_extra', // field name
       ts('Enable extra edit fields for recurring contributions')
     );
