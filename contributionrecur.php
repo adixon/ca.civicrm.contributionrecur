@@ -402,7 +402,10 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   $page_id = $form->getVar('_id');
   $page_settings = Civi::settings()->get('contributionrecur_settings_'.$page_id);
   foreach(array('default_recur','force_recur','nice_recur','default_membership_auto_renew') as $setting) {
-    if (!empty($page_settings[$setting])) {
+    if (!empty($contributionrecur_settings['disable_for_recurux'])) {
+      $contributionrecur_settings[$setting] = 0;
+    }
+    elseif (!empty($page_settings[$setting])) {
       $contributionrecur_settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
     }
   }
@@ -649,6 +652,10 @@ function _contributionrecur_civicrm_getContributionTemplate($contribution) {
 function contributionrecur_civicrm_tabset($tabsetName, &$tabs, $context) {
   //check if the tabset is Contribution Page
   if ($tabsetName == 'civicrm/admin/contribute') {
+    $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
+    if (!empty($contributionrecur_settings['disable_for_recurux'])) {
+      return;
+    }
     if (!empty($context['contribution_page_id'])) {
       $contribID = $context['contribution_page_id'];
       $url = CRM_Utils_System::url( 'civicrm/admin/contribute/recur',
