@@ -21,7 +21,7 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
   }
 
   public function getBillingAddressFields($billingLocationID = NULL): array {
-    return $this->_settings['no_billing_acheft'] ? [] : parent::getBillingAddressFields($billingLocationID);   
+    return $this->_settings['no_billing_acheft'] ? [] : parent::getBillingAddressFields($billingLocationID);
   }
 
   /**
@@ -48,14 +48,14 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
       $params['trxn_id'] = sprintf('live_%08d', $trxn_id);
     }
     $params['gross_amount'] = $params['amount'];
-    $params['payment_status_id'] = 1;
+    $params['payment_status_id'] = 2;
     return $params;
   }
 
   public function getPaymentFormFields() {
     return [];
   }
-  
+
   /**
    * Are back office payments supported.
    *
