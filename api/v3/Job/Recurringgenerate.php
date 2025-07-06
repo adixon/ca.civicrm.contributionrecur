@@ -246,6 +246,7 @@ function civicrm_api3_job_recurringgenerate($params) {
 
     if ($c_dao->fetch()) {
       // do nothing
+      $contributionResult = FALSE;
     } else {
       // create the pending contribution, and save its id
       $contributionResult = civicrm_api('contribution','create', $contribution);
