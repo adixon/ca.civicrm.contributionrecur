@@ -48,11 +48,13 @@ function _civicrm_api3_job_recurringgenerate_spec(&$spec) {
  */
 function civicrm_api3_job_recurringgenerate($params) {
   // TODO: what kind of extra security do we want or need here to prevent it from being triggered inappropriately? Or does it matter?
+  /*
   if (empty($params['payment_processor_id'])
       && empty($params['financial_type_id'])
       && empty($params['contact_id'])
       && empty($params['id'])
   ) return;
+  */
   // same these two extra params and remove them from the params array
   $catchup = !empty($params['catchup']);
   unset($params['catchup']);
