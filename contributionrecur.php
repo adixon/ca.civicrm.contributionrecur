@@ -225,7 +225,8 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
               $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
               if (0 < max($allow_days)) {
                 $from_time = _contributionrecur_next(strtotime($params['receive_date']),$allow_days);
-                $params['receive_date'] = date('Ymd', $from_time).'030000';
+                //$params['receive_date'] = date('Ymd', $from_time).'030000'; //date('H:i:s')
+                $params['receive_date'] = date('Ymd', $from_time).date('His'); //date('H:i:s')
               }
             }
           }
