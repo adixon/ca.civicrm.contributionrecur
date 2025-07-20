@@ -438,7 +438,8 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   // if the site administrator has resticted the recurring days
   $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
   if (max($allow_days) > 0) {
-    $next_time = _contributionrecur_next(strtotime('+1 day'),$allow_days);
+    //$next_time = _contributionrecur_next(strtotime('+1 day'),$allow_days);
+    $next_time = _contributionrecur_next(strtotime('+0 day'),$allow_days);
     contributionrecur_civicrm_varset(array('nextDate' => date('Y-m-d', $next_time)));
   }
   if ((max($allow_days) > 0) || !empty($contributionrecur_settings['force_recur'])) {
