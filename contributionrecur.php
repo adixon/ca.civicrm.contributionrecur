@@ -506,7 +506,7 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
     unset($edit_fields['contribution_status_id']);
   }
   foreach($edit_fields as $fid => $label) {
-    $form->addDateTime($fid,ts($label));
+    $form->add('datepicker', $fid, ts($label));
   }
   $form->setDefaults($defaults);
   // now add some more fields for display only
