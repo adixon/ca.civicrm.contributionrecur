@@ -20,7 +20,7 @@
   </div>
   <div class="crm-section">
     <div class="label">{$form.receive_date.label}</div>
-    <div class="content">{include file="CRM/common/jcalendar.tpl" elementName=receive_date}</div>
+    <div class="content">{$form.receive_date.html}</div>
   </div>
   <p>Clicking 'Generate Reversing Membership Contributions' will generate a pair of matching contributions for the date above and the types selected.</p>
   <div class="crm-submit-buttons">{include file="CRM/common/formButtons.tpl" location="bottom"}</div>
