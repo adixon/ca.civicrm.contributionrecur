@@ -48,11 +48,13 @@ function _civicrm_api3_job_recurringgenerate_spec(&$spec) {
  */
 function civicrm_api3_job_recurringgenerate($params) {
   // TODO: what kind of extra security do we want or need here to prevent it from being triggered inappropriately? Or does it matter?
-  if (empty($params['payment_processor_id']) 
+  /*
+  if (empty($params['payment_processor_id'])
       && empty($params['financial_type_id'])
       && empty($params['contact_id'])
       && empty($params['id'])
   ) return;
+  */
   // same these two extra params and remove them from the params array
   $catchup = !empty($params['catchup']);
   unset($params['catchup']);
@@ -77,14 +79,14 @@ function civicrm_api3_job_recurringgenerate($params) {
   // We do this both to fix any failed settings previously, and also
   // to deal with the possibility that the settings for the number of payments (installments) for an existing record has changed.
   // First check for recur end date values on non-open-ended recurring contribution records that are either complete or in-progress
-  $select = 'SELECT cr.*, count(c.id) AS installments_done, NOW() as test_now 
-      FROM civicrm_contribution_recur cr 
-      INNER JOIN civicrm_contribution c ON cr.id = c.contribution_recur_id 
-      INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id 
-      WHERE 
-        (cr.installments > 0) 
-        AND (c.total_amount > 0) 
-        AND (cr.contribution_status_id IN (1,5)) 
+  $select = 'SELECT cr.*, count(c.id) AS installments_done, NOW() as test_now
+      FROM civicrm_contribution_recur cr
+      INNER JOIN civicrm_contribution c ON cr.id = c.contribution_recur_id
+      INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
+      WHERE
+        (cr.installments > 0)
+        AND (c.total_amount > 0)
+        AND (cr.contribution_status_id IN (1,5))
   ';
   $spec = array();
   _civicrm_api3_job_recurringgenerate_spec($spec);
@@ -117,7 +119,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     }
     // otherwise, check if my end date should be set to the past because I have finished
     elseif ($dao->installments_done >= $dao->installments) { // I'm done with installments
-      if (empty($dao->end_date) || ($dao->end_date >= $dao->test_now)) { 
+      if (empty($dao->end_date) || ($dao->end_date >= $dao->test_now)) {
         // this interval complete, set the end_date to an hour ago
         $update = 'UPDATE civicrm_contribution_recur SET end_date = DATE_SUB(NOW(),INTERVAL 1 HOUR) WHERE id = %1';
         CRM_Core_DAO::executeQuery($update,array(1 => array($dao->id,'Int')));
@@ -125,48 +127,48 @@ function civicrm_api3_job_recurringgenerate($params) {
     }
   }
   // Second, make sure any open-ended recurring contributions have no end date set
-  $update = 'UPDATE civicrm_contribution_recur cr 
+  $update = 'UPDATE civicrm_contribution_recur cr
       INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
       SET
-        cr.end_date = NULL 
+        cr.end_date = NULL
       WHERE
-        cr.contribution_status_id IN (1,5) 
+        cr.contribution_status_id IN (1,5)
         AND NOT(cr.installments > 0)
         AND NOT(ISNULL(cr.end_date))'.$param_where;
   CRM_Core_DAO::executeQuery($update);
-  
+
   // Third, we update the status_id of the all in-progress or completed recurring contribution records
   // Unexpire uncompleted cycles
-  $update = 'UPDATE civicrm_contribution_recur cr 
+  $update = 'UPDATE civicrm_contribution_recur cr
       INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
       SET
-        cr.contribution_status_id = 5 
+        cr.contribution_status_id = 5
       WHERE
-        cr.contribution_status_id = 1 
+        cr.contribution_status_id = 1
         AND (cr.end_date IS NULL OR cr.end_date > NOW())'.$param_where;
   CRM_Core_DAO::executeQuery($update);
   // Expire badly-defined completed cycles
-  $update = 'UPDATE civicrm_contribution_recur cr 
+  $update = 'UPDATE civicrm_contribution_recur cr
       INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
       SET
-        cr.contribution_status_id = 1 
+        cr.contribution_status_id = 1
       WHERE
-        cr.contribution_status_id = 5 
+        cr.contribution_status_id = 5
         AND (
           (NOT(cr.end_date IS NULL) AND cr.end_date <= NOW())
           OR
           ISNULL(cr.frequency_unit)
-          OR 
-          (frequency_interval = 0) 
+          OR
+          (frequency_interval = 0)
         )'.$param_where;
   CRM_Core_DAO::executeQuery($update);
 
   // Now we're ready to generate contribution records
   // Select the ongoing recurring payments where the next scheduled contribution date is before the end of of the current day
-  $select = 'SELECT cr.*, pp.class_name, pp.is_test 
-      FROM civicrm_contribution_recur cr 
+  $select = 'SELECT cr.*, pp.class_name, pp.is_test
+      FROM civicrm_contribution_recur cr
       INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
-      WHERE 
+      WHERE
         cr.contribution_status_id = 5'.$param_where;
   //      AND pp.is_test = 0
   // process all recurring contributions due today or earlier
@@ -178,7 +180,7 @@ function civicrm_api3_job_recurringgenerate($params) {
 
   while ($dao->fetch()) {
 
-    // Create all the contribution record with status = 2 (= pending), so that they must be completed manually. 
+    // Create all the contribution record with status = 2 (= pending), so that they must be completed manually.
     // Try to get a contribution template for this contribution series - if none matches (e.g. if a donation amount has been changed), we'll just be naive about it.
     $contribution_template = _contributionrecur_civicrm_getContributionTemplate(array('contribution_recur_id' => $dao->id, 'total_amount' => $dao->amount));
     $contact_id = $dao->contact_id;
@@ -186,7 +188,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     $hash = md5(uniqid(rand(), true));
     $contribution_recur_id    = $dao->id;
     $pp_type = $dao->class_name;
-    $source = "Recurring Contribution (id=$contribution_recur_id, class=$pp_type)"; 
+    $source = "Recurring Contribution (id=$contribution_recur_id, class=$pp_type)";
     $receive_date = $catchup ? strtotime($dao->next_sched_contribution_date) : time();
     // check if we already have an error
     $errors = array();
@@ -200,7 +202,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       'trxn_id'        => $hash, /* placeholder: just something unique that can also be seen as the same as invoice_id */
       'invoice_id'       => $hash,
       'source'         => $source,
-      'contribution_status_id' => $new_contribution_status_id, 
+      'contribution_status_id' => $new_contribution_status_id,
       'currency'  => $dao->currency,
       'payment_processor'   => $dao->payment_processor_id,
       'is_test'        => $dao->is_test, /* propagate the is_test value from the parent contribution */
@@ -223,8 +225,33 @@ function civicrm_api3_job_recurringgenerate($params) {
       $contribution['skipLineItem'] = 1;
       $contribution[ 'api.line_item.create'] = $contribution_template['line_items'];
     }
-    // create the pending contribution, and save its id
-    $contributionResult = civicrm_api('contribution','create', $contribution);
+
+    // check if there are already any existing contributions for this recurring
+    // id for today with a status of pending and this contact
+    // if so skip creating a contribution record but still need to
+    // set the recurring next scheduled date to the next period below
+    $check = 'SELECT c.*
+        FROM civicrm_contribution c
+        WHERE
+          c.contribution_recur_id = %1 AND
+          c.contact_id = %2 AND
+          c.contribution_status_id = 2 AND
+          c.receive_date >= %3 AND c.receive_date <= %4';
+    $c_args[1] = array($contribution_recur_id, 'Integer');
+    $c_args[2] = array($contact_id, 'Integer');
+    $c_args[3] = array($dtCurrentDayStart, 'String');
+    $c_args[4] = array($dtCurrentDayEnd, 'String');
+
+    $c_dao = CRM_Core_DAO::executeQuery($check,$c_args);
+
+    if ($c_dao->fetch()) {
+      // do nothing
+      $contributionResult = FALSE;
+    } else {
+      // create the pending contribution, and save its id
+      $contributionResult = civicrm_api('contribution','create', $contribution);
+    }
+
     if (!empty($contributionResult['is_error'])) {
       civicrm_api3_create_error($contributionResult['error_message']);
       break;
@@ -241,7 +268,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       catch (Exception $e) {
         // ignore, if will fail correctly if there is no membership payment
       }
-    } 
+    }
     //$mem_end_date = $member_dao->end_date;
     // if our template contribution has a soft-credit, make this one also
     if (!empty($contribution_template['soft_credit'])) {
@@ -262,15 +289,15 @@ function civicrm_api3_job_recurringgenerate($params) {
           // just log the error and continue
         }
       }
-    } 
+    }
     // $temp_date = strtotime($dao->next_sched_contribution);
     /* calculate the next collection date. You could use the previous line instead if you wanted to catch up with missing contributions instead of just moving forward from the present */
     $next_collectionDate = strtotime ("+$dao->frequency_interval $dao->frequency_unit", $receive_date);
     $next_collectionDate = date('YmdHis', $next_collectionDate);
 
     CRM_Core_DAO::executeQuery("
-      UPDATE civicrm_contribution_recur 
-         SET next_sched_contribution_date = %1 
+      UPDATE civicrm_contribution_recur
+         SET next_sched_contribution_date = %1
        WHERE id = %2
     ", array(
          1 => array($next_collectionDate, 'String'),
@@ -283,11 +310,11 @@ function civicrm_api3_job_recurringgenerate($params) {
   // now update the end_dates and status for non-open-ended contribution series if they are complete (so that the recurring contribution status will show correctly)
   // This is a simplified version of what we did before the processing
   $select = 'SELECT cr.id, count(c.id) AS installments_done, cr.installments
-      FROM civicrm_contribution_recur cr 
-      INNER JOIN civicrm_contribution c ON cr.id = c.contribution_recur_id 
-      INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id 
-      WHERE 
-        (cr.installments > 0) 
+      FROM civicrm_contribution_recur cr
+      INNER JOIN civicrm_contribution c ON cr.id = c.contribution_recur_id
+      INNER JOIN civicrm_payment_processor pp ON cr.payment_processor_id = pp.id
+      WHERE
+        (cr.installments > 0)
         AND (cr.contribution_status_id  = 5) '.$param_where.'
       GROUP BY c.contribution_recur_id';
   $dao = CRM_Core_DAO::executeQuery($select,$args);

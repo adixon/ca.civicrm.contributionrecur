@@ -21,7 +21,7 @@ class CRM_Core_Payment_RecurOffline extends CRM_Core_Payment {
   }
 
   public function getBillingAddressFields($billingLocationID = NULL): array {
-    return $this->_settings['no_billing_cc'] ? [] : parent::getBillingAddressFields($billingLocationID);   
+    return $this->_settings['no_billing_cc'] ? [] : parent::getBillingAddressFields($billingLocationID);
   }
 
   /**
