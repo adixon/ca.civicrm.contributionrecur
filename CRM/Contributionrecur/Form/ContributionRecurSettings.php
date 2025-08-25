@@ -27,6 +27,11 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     );
     $this->add(
       'checkbox', // field type
+      'initial_contrib_pending_acheft', // field name
+      ts('Make the initial contribution pending instead of completed for the offline ACHEFT processor')
+    );
+    $this->add(
+      'checkbox', // field type
       'edit_extra', // field name
       ts('Enable extra edit fields for recurring contributions')
     );
@@ -55,7 +60,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       'default_membership_auto_renew', // field name
       ts('Modify default membership auto-renew to "on"')
     );
-    // allow selection of activity type for implicit membership renewal 
+    // allow selection of activity type for implicit membership renewal
     $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
     $activity_types = array('0' => '-- none --');
     foreach($result['values'] as $activity_type) {
@@ -83,7 +88,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       FALSE,
       $attr
     );
-    
+
     $day_select->setMultiple(TRUE);
     $day_select->setSize(29);
     $this->addButtons(array(
@@ -108,7 +113,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       if (isset($values[$key])) {
         unset($values[$key]);
       }
-    } 
+    }
     CRM_Core_BAO_Setting::setItem($values, 'Recurring Contributions Extension', 'contributionrecur_settings');
     parent::postProcess();
   }
