@@ -44,25 +44,31 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
 
     $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
     if (empty($contributionrecur_settings['disable_for_recurux'])) {
+      if ($contributionrecur_settings['force_recur']
+        || $contributionrecur_settings['default_recur']
+        || $contributionrecur_settings['nice_recur']
+        || $contributionrecur_settings['default_membership_auto_renew']) {
+	CRM_Core_Session::setStatus('Please install the "Recurring Contribution UX" extension soon and use the "Disable all settings that are found in the recurUX extension". Those settings and functionality are now deprecated in this extension and will be removed in the next minor update', 'Install the RecurUX extension',  'error');
+      }
       $this->add(
         'checkbox', // field type
         'force_recur', // field name
-        ts('Force recurring-only option on pages that it is available')
+        ts('Force recurring-only option on pages that it is available [warning: deprecated]')
       );
       $this->add(
         'checkbox', // field type
         'default_recur', // field name
-        ts('Default the "recurring contribution" checkbox to "true" but allow users to uncheck it.')
+        ts('Default the "recurring contribution" checkbox to "true" but allow users to uncheck it [warning: deprecated].')
       );
       $this->add(
         'checkbox', // field type
         'nice_recur', // field name
-        ts('Add a nice js-based recurring/non-recurring switcher')
+        ts('Add a nice js-based recurring/non-recurring switcher [warning: deprecated]')
       );
       $this->add(
         'checkbox', // field type
         'default_membership_auto_renew', // field name
-        ts('Modify default membership auto-renew to "on"')
+        ts('Modify default membership auto-renew to "on" [warning: deprecated]')
       );
     }
 
