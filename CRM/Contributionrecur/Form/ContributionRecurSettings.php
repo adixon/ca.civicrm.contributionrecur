@@ -38,6 +38,12 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
 
     $this->add(
       'checkbox', // field type
+      'simplify_updaterecur', // field name
+      ts('Only allow amount update for self-service updates of recurring schedules.')
+    );
+
+    $this->add(
+      'checkbox', // field type
       'disable_for_recurux', // field name
       ts('Disable all settings that are found in RecurUX extension')
     );

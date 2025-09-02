@@ -453,13 +453,29 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
  * add some functionality to the update subscription form for recurring contributions
  *
  * Todo: make the available new fields configurable
+ * Simplify if it's a non-admin access and so configured.
  */
 function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
-  // only do this if the user is allowed to edit contributions. A more stringent permission might be smart.
+  $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
+
+  // for contacts that are not able to edit contributions, (optionally) present a simplified form.
   if (!CRM_Core_Permission::check('edit contributions')) {
+    if (!empty($contributionrecur_settings['simplify_updaterecur'])) {
+      foreach(['installments'] as $fid) {
+        if ($form->elementExists($fid)) {
+          $form->removeElement('installments');
+        }
+      }
+      foreach(['next_sched_contribution_date'] as $fid) {
+        if ($form->elementExists($fid)) {
+          $e =& $form->getElement($fid);
+          $e->freeze();
+        }
+      }
+      $form->assign('changeHelpText', ts('Use this form to change the amount of your recurring contribution.'));
+    }
     return;
   }
-  $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
   // don't do this unless the site administrator has enabled it
   if (empty($contributionrecur_settings['edit_extra'])) {
     return;
