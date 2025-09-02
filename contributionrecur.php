@@ -2,6 +2,7 @@
 
 require_once 'contributionrecur.civix.php';
 
+
 /**
  * Implementation of hook_civicrm_config
  *
@@ -282,7 +283,6 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
   );
   try {
     $result = civicrm_api3('ContributionRecur', 'getvalue', $params);
-    // \Civi::log()->debug("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, result: " . var_export($result, true));
     if (empty($result)) {
       \Civi::log()->error("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, result is empty");
       $result = FALSE;
@@ -313,7 +313,6 @@ function _contributionrecur_pp_info($payment_processor_id, $return, $class_name 
   }
   try {
     $result = civicrm_api('PaymentProcessor', 'getvalue', $params);
-    // \Civi::log()->debug("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, result: " . var_export($result, true));
     if (empty($result)) {
       \Civi::log()->error("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, result is empty");
       $result = FALSE;
@@ -772,7 +771,7 @@ function contributionrecur_evaluate_tokens(\Civi\Token\Event\TokenValueEvent $e)
     $contributionRecur = \Civi\Api4\ContributionRecur::get(FALSE)
       ->addWhere('contact_id', '=', $contactId)
       ->addWhere('contribution_status_id:name', '=', 'In Progress')
-      ->addWhere('next_sched_contribution_date', '>', 'NOW')
+      ->addWhere('next_sched_contribution_date', '>', 'NOW()')
       ->addOrderBy('next_sched_contribution_date', 'ASC')
       ->setLimit(1)
       ->execute();
