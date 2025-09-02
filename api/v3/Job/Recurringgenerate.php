@@ -252,7 +252,7 @@ function civicrm_api3_job_recurringgenerate($params) {
           'contact_id' => $soft_credit['contact_id'],
           'amount' => $soft_credit['amount'],
           'currency' => $soft_credit['currency'],
-          'soft_credit_type' => $soft_credit['soft_credit_type']
+          'soft_credit_type_id' => $soft_credit['soft_credit_type']
         );
         try {
           $result = civicrm_api3('ContributionSoft', 'create', $params);
