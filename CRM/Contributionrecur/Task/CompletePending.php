@@ -96,7 +96,7 @@ WHERE  id IN ( $contribIDs )";
     }
     $this->assign('totalAmount', $amount);
     $this->assign('totalCount', count($this->_rows));
-    $this->assign_by_ref('rows', $this->_rows);
+    $this->assign('rows', $this->_rows);
     $this->addButtons(array(
         array(
           'type' => 'next',
