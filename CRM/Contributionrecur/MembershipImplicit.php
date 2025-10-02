@@ -41,6 +41,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     $total_amount = floatval(0);
     $applied_contributions = array();
     $start_date = '';
+    // calculate a 'minimum start date' based on the most recent contribution being applied
     do {
       $contribution = array_shift($contributions);
       $total_amount += $contribution['total_amount'];
@@ -54,17 +55,24 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     if (($total_amount < $membership_type['minimum_fee']) && ($membership['status_id'] > 2)) {
       return array('Total amount < minimum fee');
     }
-    // for a grace/expired membership, figure out start and end dates of the membership and update it
-    if ($membership['status_id'] > 2) {
-      // $start_date = date('Y-m-d'); 
-      $updated_membership = array('contact_id' => $contact_id, 'id' => $membership['id']);
-      $dates = CRM_Member_BAO_MembershipType::getRenewalDatesForMembershipType($membership['id'],date('YmdHis',strtotime($start_date)),$membership['membership_type_id'],1);
-      $updated_membership['start_date'] = CRM_Utils_Array::value('start_date', $dates);
-      $updated_membership['end_date'] = CRM_Utils_Array::value('end_date', $dates);
-      $updated_membership['source'] = ts('Auto-renewed membership from contribution of implicit membership type');
-      $updated_membership['status_id'] = 2; // always set to current now
-      civicrm_api3('Membership','create',$updated_membership);
+    // figure out new start and end dates of the membership and update it
+    // the new start date is:
+    // if the status is new, grace or current, then use the end date of the current membership.
+    // for expired, use the largest of the latest donation or the end date.
+    $today = date('Y-m-d');
+    if ($membership['end_date'] >= $today || $membership['status_id'] == 3) {
+      $start_date = $membership['end_date'];
     }
+    else {
+      $start_date = max($start_date, $membership['end_date']);
+    }
+    $updated_membership = array('contact_id' => $contact_id, 'id' => $membership['id']);
+    $dates = CRM_Member_BAO_MembershipType::getRenewalDatesForMembershipType($membership['id'],date('YmdHis',strtotime($start_date)),$membership['membership_type_id'],1);
+    $updated_membership['start_date'] = CRM_Utils_Array::value('start_date', $dates);
+    $updated_membership['end_date'] = CRM_Utils_Array::value('end_date', $dates);
+    $updated_membership['source'] = ts('Auto-renewed membership from contribution of implicit membership type');
+    $updated_membership['status_id'] = 2; // always set to current now
+    civicrm_api3('Membership','create',$updated_membership);
 
     // now assign all the applied contributions to this membership
     foreach($applied_contributions as $contribution) {
