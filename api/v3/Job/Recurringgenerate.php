@@ -229,7 +229,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       civicrm_api3_create_error($contributionResult['error_message']);
       break;
     }
-    $contribution_id = CRM_Utils_Array::value('id', $contributionResult);
+    $contribution_id = $contributionResult['id'] ?? NULL;
     // if our template contribution has a membership payment, make this one also
     if ($domemberships && !empty($contribution_template['contribution_id'])) {
       try {
