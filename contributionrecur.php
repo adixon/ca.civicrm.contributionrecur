@@ -288,7 +288,7 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
       $result = FALSE;
     }
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     \Civi::log()->error("_contributionrecur_payment_processor_id: contribution_recur_id: $contribution_recur_id, Exception: $e");
     $result = FALSE;
   }
@@ -318,7 +318,7 @@ function _contributionrecur_pp_info($payment_processor_id, $return, $class_name 
       $result = FALSE;
     }
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     \Civi::log()->error("_contributionrecur_pp_info: payment_processor_id: $payment_processor_id, Exception: $e");
     $result = FALSE;
   }
@@ -489,13 +489,13 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   try {
     $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     return;
   }
   try {
     $contact = civicrm_api3('Contact', 'getsingle', array('id' => $recur['contact_id']));
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     return;
   }
   // turn off default notification checkbox, most will want to hide it as well.
@@ -564,7 +564,7 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
   try {
     $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     return;
   }
   // add the 'generate ad hoc contribution form' link

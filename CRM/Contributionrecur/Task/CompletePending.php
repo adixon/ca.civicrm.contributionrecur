@@ -130,7 +130,7 @@ WHERE  id IN ( $contribIDs )";
         $contributionResult = civicrm_api3('contribution', 'create', $row);
       }
       catch (Exception $e) {
-        throw new API_Exception('Failed to complete transaction: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        throw new CRM_Core_Exception('Failed to complete transaction: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
       }
 
     }
