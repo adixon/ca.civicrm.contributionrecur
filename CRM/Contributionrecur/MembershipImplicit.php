@@ -95,7 +95,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
             // unset($applied_contributions[$i]);
             $return[] = 'Converted contribution '. $contribution['id'] .' of contact id '. $contact_id .' to financial type id '. $membership_financial_type_id;
           }
-          catch (CiviCRM_API3_Exception $e) {
+          catch (CRM_Core_Exception $e) {
             $return[] = $e->getMessage();
             $return[] = $p;
           }
@@ -132,7 +132,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
           civicrm_api3('MembershipPayment','create', array('contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']));
           $return[] = 'Created membership and reversal contributions for contact id '. $contact_id;
         }
-        catch (CiviCRM_API3_Exception $e) {
+        catch (CRM_Core_Exception $e) {
           $return[] = $e->getMessage();
           $return[] = $p;
         }
@@ -140,7 +140,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     }
     $return[] = 'Updated membership '.$membership['id'];
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     if ($create_new_membership_type_id) {
       $contribution = array_shift($contributions);
       $new_membership = array('contact_id' => $contact_id, 'membership_type_id' => $create_new_membership_type_id, 'join_date' => $contribution['receive_date']);
@@ -150,7 +150,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
         civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
         $return[] = 'Created membership '.$membership['id'];
       }
-      catch (CiviCRM_API3_Exception $e) {
+      catch (CRM_Core_Exception $e) {
         $return[] = 'Error creating new membership';
         $return[] = $e->getMessage();
         $return[] = $new_membership;

@@ -116,7 +116,7 @@ AND    {$this->_componentClause}";
       try {
         $membership = civicrm_api3('Membership', 'getsingle', array('sequential' => 1, 'contact_id' => $contact_id, 'membership_type_id' => $values['membership_type_id']));
       }
-      catch (CiviCRM_API3_Exception $e) {
+      catch (CRM_Core_Exception $e) {
        // ignore
       }
       if (empty($membership['id'])) {
@@ -155,13 +155,13 @@ AND    {$this->_componentClause}";
           civicrm_api3('MembershipPayment','create', array('contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']));
           $return[] = 'Created reversal contributions for contact id '. $contact_id;
         }
-        catch (CiviCRM_API3_Exception $e) {
+        catch (CRM_Core_Exception $e) {
           $return[] = $e->getMessage();
           $return[] = $p;
         }
       }
       catch (Exception $e) {
-        throw new API_Exception('Error generating contributions: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        throw new CRM_Core_Exception('Error generating contributions: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
       }
     }
     CRM_Core_Session::setStatus(ts('Contributions have been generated for selected contact(s).'), ts('Contributions generated'), 'success');

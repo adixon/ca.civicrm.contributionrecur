@@ -44,7 +44,7 @@ function _civicrm_api3_job_recurringgenerate_spec(&$spec) {
  * @return array API result descriptor
  * @see civicrm_api3_create_success
  * @see civicrm_api3_create_error
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_job_recurringgenerate($params) {
   // TODO: what kind of extra security do we want or need here to prevent it from being triggered inappropriately? Or does it matter?
@@ -257,7 +257,7 @@ function civicrm_api3_job_recurringgenerate($params) {
         try {
           $result = civicrm_api3('ContributionSoft', 'create', $params);
         }
-        catch (CiviCRM_API3_Exception $e) {
+        catch (CRM_Core_Exception $e) {
           CRM_Core_Error::debug_var('Unexpected Exception', $e);
           // just log the error and continue
         }
