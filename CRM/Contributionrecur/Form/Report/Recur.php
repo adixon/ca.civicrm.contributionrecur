@@ -378,25 +378,25 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
       }
 
       // handle contribution status id
-      if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_contribution_status_id', $row)) {
+      if ($value = $row['civicrm_contribution_recur_contribution_status_id'] ?? NULL) {
         $rows[$rowNum]['civicrm_contribution_recur_contribution_status_id'] = self::$contributionStatus[$value];
       }
       // handle membership status id
-      if ($value = CRM_Utils_Array::value('civicrm_membership_status_id', $row)) {
+      if ($value = $row['civicrm_membership_status_id'] ?? NULL) {
         $rows[$rowNum]['civicrm_membership_status_id'] = self::$membershipStatus[$value];
       }
       // handle processor id
-      if ($value = CRM_Utils_Array::value('civicrm_contribution_recur_payment_processor_id', $row)) {
+      if ($value = $row['civicrm_contribution_recur_payment_processor_id'] ?? NULL) {
         $rows[$rowNum]['civicrm_contribution_recur_payment_processor_id'] = self::$processors[$value];
       }
       // handle address country and province id => value conversion
-      if ($value = CRM_Utils_Array::value('civicrm_address_country_id', $row)) {
+      if ($value = $row['civicrm_address_country_id'] ?? NULL) {
         $rows[$rowNum]['civicrm_address_country_id'] = CRM_Core_PseudoConstant::country($value, FALSE);
       }
-      if ($value = CRM_Utils_Array::value('civicrm_address_state_province_id', $row)) {
+      if ($value = $row['civicrm_address_state_province_id'] ?? NULL) {
         $rows[$rowNum]['civicrm_address_state_province_id'] = CRM_Core_PseudoConstant::stateProvince($value, FALSE);
       }
-      if ($value = CRM_Utils_Array::value('civicrm_contact_prefix_id', $row)) {
+      if ($value = $row['civicrm_contact_prefix_id'] ?? NULL) {
         $rows[$rowNum]['civicrm_contact_prefix_id'] = self::$prefixes[$value];
       }
     }

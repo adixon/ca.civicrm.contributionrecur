@@ -68,8 +68,8 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     }
     $updated_membership = array('contact_id' => $contact_id, 'id' => $membership['id']);
     $dates = CRM_Member_BAO_MembershipType::getRenewalDatesForMembershipType($membership['id'],date('YmdHis',strtotime($start_date)),$membership['membership_type_id'],1);
-    $updated_membership['start_date'] = CRM_Utils_Array::value('start_date', $dates);
-    $updated_membership['end_date'] = CRM_Utils_Array::value('end_date', $dates);
+    $updated_membership['start_date'] = $dates['start_date'] ?? NULL;
+    $updated_membership['end_date'] = $dates['end_date'] ?? NULL;
     $updated_membership['source'] = ts('Auto-renewed membership from contribution of implicit membership type');
     $updated_membership['status_id'] = 2; // always set to current now
     civicrm_api3('Membership','create',$updated_membership);

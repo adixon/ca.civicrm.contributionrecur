@@ -37,7 +37,7 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
     }
     // create the pending contribution, and save its id
     $contributionResult = civicrm_api('contribution','create', $contribution);
-    $contribution_id = CRM_Utils_Array::value('id', $contributionResult);
+    $contribution_id = $contributionResult['id'] ?? NULL;
     return 'Created new contribution id: '.$contribution_id;
   }
 
