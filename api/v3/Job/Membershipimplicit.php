@@ -89,7 +89,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         throw new CRM_Core_Exception(ts('Invalid syntax: '.$ftype_ids));
       }
       else {
-        $clean[] = (integer) $id;
+        $clean[] = (int) $id;
       } 
     }
     $ftype_ids = implode(',',$clean);
@@ -101,7 +101,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         throw new CRM_Core_Exception(ts('Invalid syntax: '.$mtype_ids));
       }
       else {
-        $clean[] = (integer) $id;
+        $clean[] = (int) $id;
       } 
     }
     $mtype_ids = $clean;
@@ -112,7 +112,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
         throw new CRM_Core_Exception(ts('Invalid syntax: '.$membership_ftype_id));
       }
       else {
-        $membership_ftype_id = (integer) $id;
+        $membership_ftype_id = (int) $id;
       } 
     }      
     $sql = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_line_item l ON c.id = l.contribution_id LEFT JOIN civicrm_membership_payment p ON c.id = p.contribution_id WHERE ISNULL(p.membership_id) AND (c.is_test = 0) AND (c.receive_date >= '$dl') AND (l.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id IN ($contribution_status)) ORDER BY contact_id, receive_date".$countLimit;
