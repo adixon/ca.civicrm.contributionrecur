@@ -98,7 +98,7 @@ function civicrm_api3_job_recurringgenerate($params) {
           throw new CRM_Core_Exception(ts('Invalid syntax: '.$value));
         }
         else {
-          $clean[] = (integer) $id;
+          $clean[] = (int) $id;
         }
       }
       $ids = implode(',',$clean);
