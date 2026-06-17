@@ -712,3 +712,23 @@ function contributionrecur_evaluate_tokens(\Civi\Token\Event\TokenValueEvent $e)
     }
   }
 }
+
+function contributionrecur_civicrm_postCommit(string $op, string $objectName, int $objectId, $objectRef = NULL, array $params = NULL) {
+
+  if ($objectName === 'Membership') {
+    if ($op === 'edit') {
+      $membership = \Civi\Api4\Membership::get(FALSE)
+        ->addSelect('contribution_recur_id', 'contact_id.id', 'contribution_recur_id.next_sched_contribution_date', 'end_date')
+        ->addWhere('id', '=', $objectId)
+	->setLimit(1)->execute()->first();
+      if ($membership['contribution_recur_id'] > 0) { // TODO - ensure the corresponding payment processor can all modifications to a schedule? Use the api?
+        $update = \Civi\Api4\ContributionRecur::update(TRUE)
+          ->addValue('next_sched_contribution_date', $membership['end_date'])
+          ->addWhere('id', '=', $membership['contribution_recur_id'])
+          ->execute();
+        CRM_Core_Error::debug_var('edited membership with recurring contribution',$membership);
+      }
+    }
+  }
+
+}
