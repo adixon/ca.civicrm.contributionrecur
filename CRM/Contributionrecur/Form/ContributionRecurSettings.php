@@ -35,11 +35,20 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       'no_receipts', // field name
       ts('Prevent all receipts for recurring contributions')
     );
-
     $this->add(
       'checkbox', // field type
       'simplify_updaterecur', // field name
       ts('Only allow amount update for self-service updates of recurring schedules.')
+    );
+    $this->add(
+      'checkbox', // field type
+      'membership_alignment', // field name
+      ts('Update recurring schedules when an associated membership expiry changes to maintain alignment of dates.')
+    );
+    $this->add(
+      'checkbox', // field type
+      'trigger_payment_on_billing_update', // field name
+      ts('When billing information is updated for a grace or expired recurring membership, trigger a payment.')
     );
 
     // allow selection of activity type for implicit membership renewal
