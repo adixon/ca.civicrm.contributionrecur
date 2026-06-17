@@ -396,56 +396,14 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   if (empty($form->_elementIndex['is_recur']) && empty($form->_elementIndex['auto_renew'])) {
     return;
   }
-  // get the default settings as well as the individual per-page settings
   $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
-  $page_id = $form->getVar('_id');
-  $page_settings = Civi::settings()->get('contributionrecur_settings_'.$page_id);
-  foreach(array('default_recur','force_recur','nice_recur','default_membership_auto_renew') as $setting) {
-    if (!empty($contributionrecur_settings['disable_for_recurux'])) {
-      $contributionrecur_settings[$setting] = 0;
-    }
-    elseif (!empty($page_settings[$setting])) {
-      $contributionrecur_settings[$setting] = ($page_settings[$setting] > 0) ? 1 : 0;
-    }
-  }
-  // if the site administrator has enabled forced recurring pages
-  if (!empty($contributionrecur_settings['force_recur'])) {
-    // If a form enables recurring, and the force_recur setting is on, set recurring to the default and required
-    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
-    $form->addRule('is_recur', ts('You can only use this form to make recurring contributions.'), 'required');
-    contributionrecur_civicrm_varset(array('forceRecur' => '1'));
-  }
-  elseif (!empty($contributionrecur_settings['nice_recur'])) {
-    CRM_Core_Resources::singleton()->addStyleFile('ca.civicrm.contributionrecur', 'css/donation.css');
-    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/donation.js');
-    // set the price field class names for use by the js, defaulting to the 'canonical' naming
-    $nice_recur_names = ['monthly_gift','other_amount','one_time_gift','other_one_time_amount'];
-    $nice_recur_settings = [];
-    foreach($nice_recur_names as $machine_name) {
-      $setting = 'name_'.$machine_name;
-      $nice_recur_settings[$machine_name.'_section'] = '.' . (empty($page_settings[$setting]) ? $machine_name : $page_settings[$setting]) . '-section';
-    }
-    contributionrecur_civicrm_varset($nice_recur_settings);
-  }
-  if (!empty($contributionrecur_settings['default_membership_auto_renew'])) {
-    // If the default_membership_auto_renew setting is on, alter the default value in the form
-    $form->setDefaults(array('auto_renew' => 1)); // make recurring contrib default to true
-    contributionrecur_civicrm_varset(array('defaultMembershipAutoRenew' => '1'));
-    CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/defaultMembershipAutoRenew.js');
-  }
-  if (!empty($contributionrecur_settings['default_recur'])) {
-    $form->setDefaults(array('is_recur' => 1)); // make recurring contrib default to true
-  }
   // if the site administrator has resticted the recurring days
   $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
   if (max($allow_days) > 0) {
     $next_time = _contributionrecur_next(strtotime('+1 day'),$allow_days);
     contributionrecur_civicrm_varset(array('nextDate' => date('Y-m-d', $next_time)));
-  }
-  if ((max($allow_days) > 0) || !empty($contributionrecur_settings['force_recur'])) {
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
   }
-
 }
 
 /*
@@ -662,44 +620,6 @@ function _contributionrecur_civicrm_getContributionTemplate($contribution) {
     }
   }
   return $template;
-}
-
-function contributionrecur_civicrm_tabset($tabsetName, &$tabs, $context) {
-  //check if the tabset is Contribution Page
-  if ($tabsetName == 'civicrm/admin/contribute') {
-    $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
-    if (!empty($contributionrecur_settings['disable_for_recurux'])) {
-      return;
-    }
-    if (!empty($context['contribution_page_id'])) {
-      $contribID = $context['contribution_page_id'];
-      $url = CRM_Utils_System::url( 'civicrm/admin/contribute/recur',
-        "reset=1&snippet=5&force=1&id=$contribID&action=update&component=contribution" );
-      //add a new Volunteer tab along with url
-      $tab['recur'] = array(
-        'title' => ts('Recurring'),
-        'link' => $url,
-        'valid' => 1,
-        'active' => 1,
-        'current' => false,
-      );
-    }
-    if (!empty($context['urlString']) && !empty($context['urlParams'])) {
-      $tab[] = array(
-        'title' => ts('Recurring'),
-        'name' => ts('Recurring'),
-        'url' => $context['urlString'] . 'recur',
-        'qs' => $context['urlParams'],
-        'uniqueName' => 'recur',
-      );
-    }
-    //Insert this tab into position 4
-    $tabs = array_merge(
-      array_slice($tabs, 0, 4),
-      $tab,
-      array_slice($tabs, 4)
-    );
-  }
 }
 
 // /**
