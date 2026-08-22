@@ -80,7 +80,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
         'isDefault' => TRUE,
       ),
     ));
-    $result = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
+    $result = Civi::settings()->get('contributionrecur_settings');
     $defaults = (empty($result)) ? array('-1') : $result;
     $this->setDefaults($defaults);
 
