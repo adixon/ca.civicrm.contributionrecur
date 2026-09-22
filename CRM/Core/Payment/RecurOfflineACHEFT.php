@@ -33,7 +33,7 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
   public function doDirectPayment(&$params) {
     if ($this->_mode == 'test') {
       $query             = "SELECT MAX(trxn_id) FROM civicrm_contribution WHERE trxn_id LIKE 'test\\_%'";
-      $p                 = array();
+      $p                 = [];
       $trxn_id           = strval(CRM_Core_Dao::singleValueQuery($query, $p));
       $trxn_id           = str_replace('test_', '', $trxn_id);
       $trxn_id           = intval($trxn_id) + 1;
@@ -41,7 +41,7 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
     }
     else {
       $query             = "SELECT MAX(trxn_id) FROM civicrm_contribution WHERE trxn_id LIKE 'live_%'";
-      $p                 = array();
+      $p                 = [];
       $trxn_id           = strval(CRM_Core_Dao::singleValueQuery($query, $p));
       $trxn_id           = str_replace('live_', '', $trxn_id);
       $trxn_id           = intval($trxn_id) + 1;
@@ -68,14 +68,14 @@ class CRM_Core_Payment_RecurOfflineACHEFT extends CRM_Core_Payment {
   /**
    *
    */
-  public function changeSubscriptionAmount(&$message = '', $params = array()) {
+  public function changeSubscriptionAmount(&$message = '', $params = []) {
     return TRUE;
   }
 
   /**
    *
    */
-  public function cancelSubscription(&$message = '', $params = array()) {
+  public function cancelSubscription(&$message = '', $params = []) {
     $userAlert = ts('You have cancelled this recurring contribution.');
     CRM_Core_Session::setStatus($userAlert, ts('Warning'), 'alert');
     return TRUE;

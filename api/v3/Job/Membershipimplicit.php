@@ -17,34 +17,34 @@
  */
 function _civicrm_api3_job_membershipimplicit_spec(&$spec) {
   // $spec['magicword']['api.required'] = 1;
-  $spec['mapping'] = array(
+  $spec['mapping'] = [
     'title' => 'Map of financial type id(s) to membership type id(s).',
     'api.required' => 1,
-  );
-  $spec['dateLimit'] = array(
+  ];
+  $spec['dateLimit'] = [
     'title' => 'Limit queries to this date',
     'api.required' => 1,
-  );
-  $spec['countLimit'] = array(
+  ];
+  $spec['countLimit'] = [
     'title' => 'Limit to this many contributions to process.',
     'api.required' => 0,
-  );
-  $spec['contribution_status'] = array(
+  ];
+  $spec['contribution_status'] = [
     'title' => 'Process contributions of this status',
     'api.required' => 0,
-  );
-  $spec['verbose'] = array(
+  ];
+  $spec['verbose'] = [
     'title' => 'Report verbosely.',
     'api.required' => 0,
-  );
-  $spec['create'] = array(
+  ];
+  $spec['create'] = [
     'title' => 'Create new memberships of this type id, if none exist.',
     'api.required' => 0,
-  );
-  $spec['simulate'] = array(
+  ];
+  $spec['simulate'] = [
     'title' => 'Simulate.',
     'api.required' => 0,
-  );
+  ];
 
 }
 
@@ -57,10 +57,10 @@ function _civicrm_api3_job_membershipimplicit_spec(&$spec) {
  * @see civicrm_api3_create_error
  * @throws CRM_Core_Exception
  */
-function civicrm_api3_job_membershipimplicit($params = array()) {
+function civicrm_api3_job_membershipimplicit($params = []) {
   if (empty($params['mapping'])) return;
   if (empty($params['dateLimit'])) return;
-  $update = array();
+  $update = [];
   $maps = $params['mapping'];
   $dateLimit = $params['dateLimit'];
   $countLimit = empty($params['countLimit']) ? '' : ' LIMIT '.((int)$params['countLimit']);
@@ -83,7 +83,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
   foreach($maps as $map) {
     list($ftype_ids,$mtype_ids,$membership_ftype_id) = explode(':',$map,3);
     $f = explode(',',$ftype_ids); 
-    $clean = array();
+    $clean = [];
     foreach($f as $id) {
       if (!is_numeric($id) || empty($id)) {
         throw new CRM_Core_Exception(ts('Invalid syntax: '.$ftype_ids));
@@ -95,7 +95,7 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
     $ftype_ids = implode(',',$clean);
 
     $m = explode(',',$mtype_ids); 
-    $clean = array();
+    $clean = [];
     foreach($m as $id) {
       if (!is_numeric($id) || empty($id)) {
         throw new CRM_Core_Exception(ts('Invalid syntax: '.$mtype_ids));
@@ -117,13 +117,13 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
     }      
     $sql = "SELECT c.id,c.contact_id,c.receive_date,c.total_amount,c.contribution_status_id FROM civicrm_contribution c INNER JOIN civicrm_line_item l ON c.id = l.contribution_id LEFT JOIN civicrm_membership_payment p ON c.id = p.contribution_id WHERE ISNULL(p.membership_id) AND (c.is_test = 0) AND (c.receive_date >= '$dl') AND (l.financial_type_id in ($ftype_ids)) AND (c.contribution_status_id IN ($contribution_status)) ORDER BY contact_id, receive_date".$countLimit;
     $dao = CRM_Core_DAO::executeQuery($sql);
-    $contacts = array();
+    $contacts = [];
     while($dao->fetch()) {
       if (empty($contacts[$dao->contact_id])) {
-        $contacts[$dao->contact_id] = array();
+        $contacts[$dao->contact_id] = [];
       } 
       // use the contribution id as a key to order them as input
-      $contacts[$dao->contact_id][$dao->id] = array('id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao->contribution_status_id, 'applied' => 0);
+      $contacts[$dao->contact_id][$dao->id] = ['id' => $dao->id, 'receive_date' => $dao->receive_date, 'total_amount' => $dao->total_amount, 'contribution_status_id' => $dao->contribution_status_id, 'applied' => 0];
     }
     // also deal with the possibility that the membership_payment records got created but no membership renewal happened
     /*
@@ -138,17 +138,17 @@ function civicrm_api3_job_membershipimplicit($params = array()) {
     }
     */
   } 
-  $results = array();
+  $results = [];
   if (count($contacts)) {
-    $result = civicrm_api3('MembershipType', 'get', array('sequential' => 1, 'id' => array('IN' => $mtype_ids)));
+    $result = civicrm_api3('MembershipType', 'get', ['sequential' => 1, 'id' => ['IN' => $mtype_ids]]);
     if (!empty($result['values'])) {
-      $membership_types = array();
+      $membership_types = [];
       foreach($result['values'] as $membership_type) {
         $membership_types[$membership_type['id']] = $membership_type;
       }
       include 'CRM/Contributionrecur/MembershipImplicit.php';
       foreach($contacts as $contact_id => $contributions) {
-        $results[] = $simulate ? $contact_id : contributionrecur_membershipImplicit(array('contact_id' => $contact_id), $contributions, array('membership_types' => $membership_types, 'membership_ftype_id' => $membership_ftype_id, 'create_new_membership_type_id' => $create_new_membership_type_id));
+        $results[] = $simulate ? $contact_id : contributionrecur_membershipImplicit(['contact_id' => $contact_id], $contributions, ['membership_types' => $membership_types, 'membership_ftype_id' => $membership_ftype_id, 'create_new_membership_type_id' => $create_new_membership_type_id]);
       }
     }
   }

@@ -13,9 +13,9 @@
  * This is useful for example to allow the default financial type to be tax deductible, with the membership portion converted to being non-tax-deductible
  * It will only process pending contributions in this way.
  */
-function contributionrecur_membershipImplicit($contact, $contributions, $options = array()){
+function contributionrecur_membershipImplicit($contact, $contributions, $options = []){
   // option keys are 'membership_types', 'membership_ftype_id', 'create_new_membership_type_id'
-  foreach(array('membership_types', 'membership_ftype_id', 'create_new_membership_type_id') as $key) {
+  foreach(['membership_types', 'membership_ftype_id', 'create_new_membership_type_id'] as $key) {
     if (empty($options[$key])) {
       $options[$key] = FALSE;
     }
@@ -32,14 +32,14 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     'options' => ['sort' => 'end_date DESC', 'limit' => 1]
   ];
   // or if we are configured to create a new one
-  $membership = array();
+  $membership = [];
   try{
     // $membership = civicrm_api3('Membership', 'getsingle', $p);
     $memberships = civicrm_api3('Membership', 'get', $p);
     $membership = $memberships['values'][0];
     $membership_type = $membership_types[$membership['membership_type_id']];
     $total_amount = floatval(0);
-    $applied_contributions = array();
+    $applied_contributions = [];
     $start_date = '';
     // calculate a 'minimum start date' based on the most recent contribution being applied
     do {
@@ -53,7 +53,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     );
     // are contributions not enough to renew an expired/grace membership? Quit ..
     if (($total_amount < $membership_type['minimum_fee']) && ($membership['status_id'] > 2)) {
-      return array('Total amount < minimum fee');
+      return ['Total amount < minimum fee'];
     }
     // figure out new start and end dates of the membership and update it
     // the new start date is:
@@ -66,7 +66,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     else {
       $start_date = max($start_date, $membership['end_date']);
     }
-    $updated_membership = array('contact_id' => $contact_id, 'id' => $membership['id']);
+    $updated_membership = ['contact_id' => $contact_id, 'id' => $membership['id']];
     $dates = CRM_Member_BAO_MembershipType::getRenewalDatesForMembershipType($membership['id'],date('YmdHis',strtotime($start_date)),$membership['membership_type_id'],1);
     $updated_membership['start_date'] = $dates['start_date'] ?? NULL;
     $updated_membership['end_date'] = $dates['end_date'] ?? NULL;
@@ -77,7 +77,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     // now assign all the applied contributions to this membership
     foreach($applied_contributions as $contribution) {
       if (empty($contribution['applied'])) {
-        civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
+        civicrm_api3('MembershipPayment','create', ['contribution_id' => $contribution['id'], 'membership_id' => $membership['id']]);
       }
     }
     // see if we need/can convert some of these to membership contributions, and then generate reversing contributions for the rest
@@ -88,7 +88,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
       // first try and change the financial type of any pending contributions, but no more than the membership minimum fee
       foreach($applied_contributions as $i =>  $contribution) {
         if ($contribution['contribution_status_id'] == 2 && (($membership_amount - $contribution['total_amount']) > 0)) {
-          $p = array('id' => $contribution['id'], 'financial_type_id' => $membership_financial_type_id);
+          $p = ['id' => $contribution['id'], 'financial_type_id' => $membership_financial_type_id];
           try {
             civicrm_api3('Contribution', 'create', $p);
             $membership_amount = $membership_amount - $contribution['total_amount'];
@@ -103,10 +103,10 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
       }
       if ($membership_amount > 0) { // create matching contribution and reversal based on the last contribution
         // get details of last contribution
-        $params = array('version' => 3, 'sequential' => 1, 'id' => $last_contribution['id']);
+        $params = ['version' => 3, 'sequential' => 1, 'id' => $last_contribution['id']];
         $contribution = civicrm_api3('Contribution', 'getsingle', $params);
         $hash = md5(uniqid(rand(), true));
-        $membership_contribution = array(
+        $membership_contribution = [
           'version'        => 3,
           'contact_id'       => $contact_id,
           'receive_date'       => $contribution['receive_date'], 
@@ -120,7 +120,7 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
           'currency'  => $contribution['currency'],
           'payment_processor'   => $contribution['payment_processor'],
           'financial_type_id' => $membership_financial_type_id,
-        );
+        ];
         $reversal_contribution = $membership_contribution;
         $reversal_contribution['total_amount'] = -$membership_amount;
         $reversal_contribution['financial_type_id'] = $contribution['financial_type_id'];
@@ -128,8 +128,8 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
         try {
           civicrm_api3('Contribution', 'create', $membership_contribution);
           civicrm_api3('Contribution', 'create', $reversal_contribution);
-          civicrm_api3('MembershipPayment','create', array('contribution_id' => $membership_contribution['id'], 'membership_id' => $membership['id']));
-          civicrm_api3('MembershipPayment','create', array('contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']));
+          civicrm_api3('MembershipPayment','create', ['contribution_id' => $membership_contribution['id'], 'membership_id' => $membership['id']]);
+          civicrm_api3('MembershipPayment','create', ['contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']]);
           $return[] = 'Created membership and reversal contributions for contact id '. $contact_id;
         }
         catch (CRM_Core_Exception $e) {
@@ -143,11 +143,11 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
   catch (CRM_Core_Exception $e) {
     if ($create_new_membership_type_id) {
       $contribution = array_shift($contributions);
-      $new_membership = array('contact_id' => $contact_id, 'membership_type_id' => $create_new_membership_type_id, 'join_date' => $contribution['receive_date']);
+      $new_membership = ['contact_id' => $contact_id, 'membership_type_id' => $create_new_membership_type_id, 'join_date' => $contribution['receive_date']];
       $new_membership['source'] = ts('Auto-generated membership from contribution of implicit membership type');
       try {
         $membership = civicrm_api3('Membership','create',$new_membership);
-        civicrm_api3('MembershipPayment','create', array('contribution_id' => $contribution['id'], 'membership_id' => $membership['id']));
+        civicrm_api3('MembershipPayment','create', ['contribution_id' => $contribution['id'], 'membership_id' => $membership['id']]);
         $return[] = 'Created membership '.$membership['id'];
       }
       catch (CRM_Core_Exception $e) {
@@ -167,14 +167,14 @@ function contributionrecur_membershipImplicit($contact, $contributions, $options
     $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
     $activity_type_id = $contributionrecur_settings['activity_type_id'];
     if ($activity_type_id > 0) {
-      civicrm_api3('Activity', 'create', array(
+      civicrm_api3('Activity', 'create', [
         'version'       => 3,
         'activity_type_id'  => $activity_type_id,
         'source_contact_id'   => $contact_id,
         /* 'source_record_id' => $membership['id'], */
         'subject'       => "Applied unallocated contributions to membership using implicit membership from contributions rule.",
         'status_id'       => 2,
-        'activity_date_time'  => date("YmdHis"),)
+        'activity_date_time'  => date("YmdHis"),]
       );
     }
     // regardless, also create the activity that gets used when measuring membership change, etc.

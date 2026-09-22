@@ -7,14 +7,14 @@
 
 class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
 
-  protected $_customGroupExtends = array('Contact', 'Membership');
+  protected $_customGroupExtends = ['Contact', 'Membership'];
 
-  static private $processors = array();
+  static private $processors = [];
   // static private $version = array();
-  static private $financial_types = array();
-  static private $prefixes = array();
-  static private $contributionStatus = array();
-  static private $membershipStatus = array();
+  static private $financial_types = [];
+  static private $prefixes = [];
+  static private $contributionStatus = [];
+  static private $membershipStatus = [];
 
   function __construct() {
 
@@ -24,312 +24,312 @@ class CRM_Contributionrecur_Form_Report_Recur extends CRM_Report_Form {
     self::$contributionStatus = CRM_Contribute_BAO_Contribution::buildOptions('contribution_status_id');
     self::$membershipStatus = CRM_Member_PseudoConstant::membershipStatus();
 
-    $params = array('version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1);
+    $params = ['version' => 3, 'sequential' => 1, 'is_test' => 0, 'return.name' => 1];
     $result = civicrm_api('PaymentProcessor', 'get', $params);
     foreach($result['values'] as $pp) {
       self::$processors[$pp['id']] = $pp['name'];
     }
-    $this->_columns = array(
-      'civicrm_contact' => array(
+    $this->_columns = [
+      'civicrm_contact' => [
         'dao' => 'CRM_Contact_DAO_Contact',
-        'order_bys' => array(
-          'sort_name' => array(
+        'order_bys' => [
+          'sort_name' => [
             'title' => ts("Last name, First name"),
-          ),
-        ),
-        'fields' => array(
-          'first_name' => array(
+          ],
+        ],
+        'fields' => [
+          'first_name' => [
             'title' => ts('First Name'),
-          ),
-          'last_name' => array(
+          ],
+          'last_name' => [
             'title' => ts('Last Name'),
-          ),
-          'prefix_id' => array(
+          ],
+          'prefix_id' => [
             'title' => ts('Prefix'),
-          ),
-          'external_identifier' => array(
+          ],
+          'external_identifier' => [
             'title' => ts('External Identifier'),
-          ),
-          'sort_name' => array(
+          ],
+          'sort_name' => [
             'title' => ts('Contact Name'),
             'no_repeat' => TRUE,
             'default' => TRUE,
-          ),
-          'id' => array(
+          ],
+          'id' => [
             'no_display' => TRUE,
             'required' => TRUE,
-          ),
-        ),
-      ),
-      'civicrm_email' => array(
+          ],
+        ],
+      ],
+      'civicrm_email' => [
         'dao' => 'CRM_Core_DAO_Email',
-        'order_bys' => array(
-          'email' => array(
+        'order_bys' => [
+          'email' => [
             'title' => ts('Email'),
-          ),
-        ),
-        'fields' => array(
-          'email' => array(
+          ],
+        ],
+        'fields' => [
+          'email' => [
             'title' => ts('Email'),
             'no_repeat' => TRUE,
-          ),
-        ),
+          ],
+        ],
         'grouping' => 'contact-fields',
-      ),
-      'civicrm_phone' => array(
+      ],
+      'civicrm_phone' => [
         'dao' => 'CRM_Core_DAO_Phone',
-        'fields' => array(
-          'phone' => array(
+        'fields' => [
+          'phone' => [
             'title' => ts('Phone'),
             'no_repeat' => TRUE,
-          ),
-        ),
+          ],
+        ],
         'grouping' => 'contact-fields',
-      ),
-      'civicrm_contribution' => array(
+      ],
+      'civicrm_contribution' => [
         'dao' => 'CRM_Contribute_DAO_Contribution',
-        'fields' => array(
-          'id' => array(
+        'fields' => [
+          'id' => [
             'no_display' => TRUE,
             'required' => TRUE,
-          ),
-          'total_amount' => array(
+          ],
+          'total_amount' => [
             'title' => ts('Amount Contributed to date'),
-            'statistics' => array(
+            'statistics' => [
               'sum' => ts("Total Amount contributed")
-            ),
-          ),
-          'receive_date' => array(
+            ],
+          ],
+          'receive_date' => [
             'no_display' => TRUE,
-          ),
-        ),
-        'filters' => array(
-          'total_amount' => array(
+          ],
+        ],
+        'filters' => [
+          'total_amount' => [
             'title' => ts('Total Amount'),
             'operatorType' => CRM_Report_Form::OP_FLOAT,
             'type' => CRM_Utils_Type::T_FLOAT,
-          ),
-          'receive_date' => array(
+          ],
+          'receive_date' => [
             'title' => ts('Receive Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
-          ),
-        ),
-      ),
-      'civicrm_membership' => array(
+          ],
+        ],
+      ],
+      'civicrm_membership' => [
         'dao' => 'CRM_Member_DAO_Membership',
-        'fields' => array(
-          'id' => array(
+        'fields' => [
+          'id' => [
             'no_display' => TRUE,
             'required' => TRUE,
-          ),
-          'join_date' => array(
+          ],
+          'join_date' => [
             'title' => ts('Membership Join Date'),
-          ),
-          'start_date' => array(
+          ],
+          'start_date' => [
             'title' => ts('Membership Start Date'),
-          ),
-          'end_date' => array(
+          ],
+          'end_date' => [
             'title' => ts('Membership End Date'),
-          ),
-          'status_id' => array(
+          ],
+          'status_id' => [
             'title' => ts('Membership Status'),
-          ),
-        ),
-        'filters' => array(
-          'end_date' => array(
+          ],
+        ],
+        'filters' => [
+          'end_date' => [
             'title' => ts('Membership End Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
-          ),
-        ),
-        'order_bys' => array(
-          'join_date' => array(
+          ],
+        ],
+        'order_bys' => [
+          'join_date' => [
             'title' => ts('Membership Join Date'),
-          ),
-          'start_date' => array(
+          ],
+          'start_date' => [
             'title' => ts('Membership Start Date'),
-          ),
-          'end_date' => array(
+          ],
+          'end_date' => [
             'title' => ts('Membership End Date'),
-          ),
-        ),
-      ),
-      'civicrm_contribution_recur' => array(
+          ],
+        ],
+      ],
+      'civicrm_contribution_recur' => [
         'dao' => 'CRM_Contribute_DAO_ContributionRecur',
-        'order_bys' => array(
-          'id' => array(
+        'order_bys' => [
+          'id' => [
             'title' => ts("Series ID"),
-          ),
-          'amount' => array(
+          ],
+          'amount' => [
             'title' => ts("Amount"),
-          ),
-          'start_date' => array(
+          ],
+          'start_date' => [
             'title' => ts('Start Date'),
-          ),
-          'modified_date' => array(
+          ],
+          'modified_date' => [
             'title' => ts('Modified Date'),
-          ),
-          'next_sched_contribution_date'  => array(
+          ],
+          'next_sched_contribution_date'  => [
             'title' => ts('Next Scheduled Contribution Date'),
-          ),
-          'cycle_day'  => array(
+          ],
+          'cycle_day'  => [
             'title' => ts('Cycle Day'),
-          ),
-          'failure_count'  => array(
+          ],
+          'failure_count'  => [
             'title' => ts('Failure Count'),
-          ),
-          'payment_processor_id' => array(
+          ],
+          'payment_processor_id' => [
             'title' => ts('Payment Processor'),
-          ),
-        ),
-        'fields' => array(
-          'id' => array(
+          ],
+        ],
+        'fields' => [
+          'id' => [
             'no_display' => TRUE,
             'required' => TRUE,
-          ),
-          'recur_id' => array(
+          ],
+          'recur_id' => [
             'name' => 'id',
             'title' => ts('Series ID'),
-          ),
-          'invoice_id' => array(
+          ],
+          'invoice_id' => [
             'title' => ts('Invoice ID'),
             'default' => FALSE,
-          ),
-          'currency' => array(
+          ],
+          'currency' => [
             'title' => ts("Currency")
-          ),
-          'amount' => array(
+          ],
+          'amount' => [
             'title' => ts('Amount'),
             'default' => TRUE,
-          ),
-          'contribution_status_id' => array(
+          ],
+          'contribution_status_id' => [
             'title' => ts('Recurring Donation Status'),
-          ),
-          'frequency_interval' => array(
+          ],
+          'frequency_interval' => [
             'title' => ts('Frequency interval'),
             'default' => TRUE,
-          ),
-          'frequency_unit' => array(
+          ],
+          'frequency_unit' => [
             'title' => ts('Frequency unit'),
             'default' => TRUE,
-          ),
-          'installments' => array(
+          ],
+          'installments' => [
             'title' => ts('Installments'),
             'default' => TRUE,
-          ),
-          'start_date' => array(
+          ],
+          'start_date' => [
             'title' => ts('Start Date'),
-          ),
-          'create_date' => array(
+          ],
+          'create_date' => [
             'title' => ts('Create Date'),
-          ),
-          'modified_date' => array(
+          ],
+          'modified_date' => [
             'title' => ts('Modified Date'),
-          ),
-          'cancel_date' => array(
+          ],
+          'cancel_date' => [
             'title' => ts('Cancel Date'),
-          ),
-          'next_sched_contribution_date' => array(
+          ],
+          'next_sched_contribution_date' => [
             'title' => ts('Next Scheduled Contribution Date'),
-          ),
-          'next_scheduled_day'  => array(
+          ],
+          'next_scheduled_day'  => [
             'name' => 'next_sched_contribution_date',
             'dbAlias' => 'DAYOFMONTH(contribution_recur_civireport.next_sched_contribution_date)',
             'title' => ts('Next Scheduled Day of the Month'),
-          ),
-          'cycle_day'  => array(
+          ],
+          'cycle_day'  => [
             'title' => ts('Cycle Day'),
-          ),
-          'failure_count' => array(
+          ],
+          'failure_count' => [
             'title' => ts('Failure Count'),
-          ),
-          'failure_retry_date' => array(
+          ],
+          'failure_retry_date' => [
             'title' => ts('Failure Retry Date'),
-          ),
-          'payment_processor_id' => array(
+          ],
+          'payment_processor_id' => [
             'title' => ts('Payment Processor'),
-          ),
-          'processor_id' => array(
+          ],
+          'processor_id' => [
             'name' => 'processor_id',
             'title' => ts('Payment processor-specific client code'),
-          ),
-        ),
-        'filters' => array(
-          'contribution_status_id' => array(
+          ],
+        ],
+        'filters' => [
+          'contribution_status_id' => [
             'title' => ts('Donation Status'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => self::$contributionStatus,
-            'default' => array(5),
+            'default' => [5],
             'type' => CRM_Utils_Type::T_INT,
-          ),
-          'payment_processor_id' => array(
+          ],
+          'payment_processor_id' => [
             'title' => ts('Payment Processor'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => self::$processors,
             'type' => CRM_Utils_Type::T_INT,
-          ),
-          'amount' => array(
+          ],
+          'amount' => [
             'title' => ts('Recurring Amount'),
             'operatorType' => CRM_Report_Form::OP_FLOAT,
             'type' => CRM_Utils_Type::T_FLOAT,
-          ),
-          'currency' => array(
+          ],
+          'currency' => [
             'title' => 'Currency',
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => CRM_Core_OptionGroup::values('currencies_enabled'),
             'default' => NULL,
             'type' => CRM_Utils_Type::T_STRING,
-          ),
-          'financial_type_id' => array(
+          ],
+          'financial_type_id' => [
             'title' => ts('Financial Type'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options'  => self::$financial_types,
             'type' => CRM_Utils_Type::T_INT,
-          ),
-          'frequency_unit' => array(
+          ],
+          'frequency_unit' => [
             'title' => ts('Frequency Unit'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' =>  CRM_Core_OptionGroup::values('recur_frequency_units'),
-          ),
-          'next_sched_contribution_date'  => array(
+          ],
+          'next_sched_contribution_date'  => [
             'title' => ts('Next Scheduled Contribution Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
-          ),
-          'next_scheduled_day' => array(
+          ],
+          'next_scheduled_day' => [
             'title' => ts('Next Scheduled Day'),
             'operatorType' => CRM_Report_Form::OP_INT,
             'type' => CRM_Utils_Type::T_INT,
-          ),
-          'cycle_day' => array(
+          ],
+          'cycle_day' => [
             'title' => ts('Cycle Day'),
             'operatorType' => CRM_Report_Form::OP_INT,
             'type' => CRM_Utils_Type::T_INT,
-          ),
-          'failure_count' => array(
+          ],
+          'failure_count' => [
             'title' => ts('Failure Count'),
             'operatorType' => CRM_Report_Form::OP_INT,
             'type' => CRM_Utils_Type::T_INT,
-          ),
-          'start_date' => array(
+          ],
+          'start_date' => [
             'title' => ts('Start Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
-          ),
-          'modified_date' => array(
+          ],
+          'modified_date' => [
             'title' => ts('Modified Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
-          ),
-          'cancel_date' => array(
+          ],
+          'cancel_date' => [
             'title' => ts('Cancel Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
-          ),
-        ),
-      ),
-    )  + $this->addAddressFields();
+          ],
+        ],
+      ],
+    ]  + $this->addAddressFields();
     if (empty(self::$financial_types)) {
       unset($this->_columns['civicrm_contribution_recur']['filters']['financial_type_id']);
     }

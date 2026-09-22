@@ -43,8 +43,8 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     );
 
     // allow selection of activity type for implicit membership renewal
-    $result = civicrm_api3('OptionValue', 'get', array('sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => array('IS NULL' => '1'), 'is_active' => 1,));
-    $activity_types = array('0' => '-- none --');
+    $result = civicrm_api3('OptionValue', 'get', ['sequential' => 1, 'return' => "value,label", 'option_group_id' => 'activity_type', 'rowCount' => 100, 'component_id' => ['IS NULL' => '1'], 'is_active' => 1,]);
+    $activity_types = ['0' => '-- none --'];
     foreach($result['values'] as $activity_type) {
       $activity_types[$activity_type['value']] = $activity_type['label'];
     }
@@ -55,13 +55,13 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
       $activity_types
     );
 
-    $days = array('-1' => 'disabled');
+    $days = ['-1' => 'disabled'];
     for ($i = 1; $i <= 28; $i++) {
       $days["$i"] = "$i";
     }
-    $attr =  array('size' => 29,
+    $attr =  ['size' => 29,
          'style' => 'width:150px',
-         'required' => FALSE);
+         'required' => FALSE];
     $day_select = $this->add(
       'select', // field type
       'days', // field name
@@ -73,15 +73,15 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
 
     $day_select->setMultiple(TRUE);
     $day_select->setSize(29);
-    $this->addButtons(array(
-      array(
+    $this->addButtons([
+      [
         'type' => 'submit',
         'name' => ts('Submit'),
         'isDefault' => TRUE,
-      ),
-    ));
+      ],
+    ]);
     $result = CRM_Core_BAO_Setting::getItem('Recurring Contributions Extension', 'contributionrecur_settings');
-    $defaults = (empty($result)) ? array('-1') : $result;
+    $defaults = (empty($result)) ? ['-1'] : $result;
     $this->setDefaults($defaults);
 
     // export form elements
@@ -91,7 +91,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
 
   function postProcess() {
     $values = $this->exportValues();
-    foreach(array('qfKey','_qf_default','_qf_ContributionRecurSettings_submit','entryURL') as $key) {
+    foreach(['qfKey','_qf_default','_qf_ContributionRecurSettings_submit','entryURL'] as $key) {
       if (isset($values[$key])) {
         unset($values[$key]);
       }
@@ -110,7 +110,7 @@ class CRM_Contributionrecur_Form_ContributionRecurSettings extends CRM_Core_Form
     // auto-rendered in the loop -- such as "qfKey" and "buttons".  These
     // items don't have labels.  We'll identify renderable by filtering on
     // the 'label'.
-    $elementNames = array();
+    $elementNames = [];
     foreach ($this->_elements as $element) {
       $label = $element->getLabel();
       if (!empty($label)) {

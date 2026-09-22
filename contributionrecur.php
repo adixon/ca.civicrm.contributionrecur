@@ -39,11 +39,11 @@ function contributionrecur_civicrm_enable() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
  */
 function contributionrecur_civicrm_managed(&$entities) {
-  $entities[] = array(
+  $entities[] = [
     'module' => 'ca.civicrm.contributionrecur',
     'name' => 'ContributionRecur',
     'entity' => 'PaymentProcessorType',
-    'params' => array(
+    'params' => [
       'version' => 3,
       'name' => 'Recurring Offline Credit Card Contribution',
       'title' => 'Offline Credit Card',
@@ -56,13 +56,13 @@ function contributionrecur_civicrm_managed(&$entities) {
       'url_site_test_default' => 'https://github.com/adixon/ca.civicrm.contributionrecur',
       'is_recur' => 1,
       'payment_type' => 1,
-    ),
-  );
-  $entities[] = array(
+    ],
+  ];
+  $entities[] = [
     'module' => 'ca.civicrm.contributionrecur',
     'name' => 'ContributionRecurACHEFT',
     'entity' => 'PaymentProcessorType',
-    'params' => array(
+    'params' => [
       'version' => 3,
       'name' => 'Recurring Offline ACH/EFT Contribution',
       'title' => 'Offline ACH/EFT',
@@ -75,30 +75,30 @@ function contributionrecur_civicrm_managed(&$entities) {
       'url_site_test_default' => 'https://github.com/adixon/ca.civicrm.contributionrecur',
       'is_recur' => 1,
       'payment_type' => 2,
-    ),
-  );
+    ],
+  ];
 }
 
 /*
  * Put my settings page into the navigation menu
  */
 function contributionrecur_civicrm_navigationMenu(&$navMenu) {
-  $pages = array(
-    'settings_page' => array(
+  $pages = [
+    'settings_page' => [
       'label' => 'Recurring Contributions Settings',
       'name' => 'Recurring Contributions Settings',
       'url' => 'civicrm/admin/contribute/recursettings',
-      'parent'    => array('Administer', 'CiviContribute'),
+      'parent'    => ['Administer', 'CiviContribute'],
       'permission' => 'access CiviContribute,administer CiviCRM',
       'operator'   => 'AND',
       'separator'  => NULL,
       'active'     => 1
-    ),
-  );
+    ],
+  ];
   foreach ($pages as $item) {
     // Check that our item doesn't already exist.
-    $menu_item_search = array('url' => $item['url']);
-    $menu_items = array();
+    $menu_item_search = ['url' => $item['url']];
+    $menu_items = [];
     CRM_Core_BAO_Navigation::retrieve($menu_item_search, $menu_items);
     if (empty($menu_items)) {
       $path = implode('/', $item['parent']);
@@ -111,7 +111,7 @@ function contributionrecur_civicrm_navigationMenu(&$navMenu) {
 function _contributionrecur_civicrm_domain_info($key) {
   static $domain;
   if (empty($domain)) {
-    $domain = civicrm_api('Domain', 'getsingle', array('version' => 3, 'current_domain' => TRUE));
+    $domain = civicrm_api('Domain', 'getsingle', ['version' => 3, 'current_domain' => TRUE]);
   }
   switch($key) {
     case 'version':
@@ -128,7 +128,7 @@ function _contributionrecur_civicrm_domain_info($key) {
 function contributionrecur_civicrm_varset($vars) {
   $version = CRM_Utils_System::version();
   if (version_compare($version, '4.5') < 0) { /// support 4.4!
-    CRM_Core_Resources::singleton()->addSetting(array('contributionrecur' => $vars));
+    CRM_Core_Resources::singleton()->addSetting(['contributionrecur' => $vars]);
   }
   else {
     CRM_Core_Resources::singleton()->addVars('contributionrecur', $vars);
@@ -196,7 +196,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
               }
             }
             if (!empty($params['next_sched_contribution_date'])) {
-              $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
+              $allow_days = empty($contributionrecur_settings['days']) ? ['-1'] : $contributionrecur_settings['days'];
               if (0 < max($allow_days)) {
                 $init_time = ('create' == $op) ? time() : strtotime($params['next_sched_contribution_date']);
                 $from_time = _contributionrecur_next($init_time,$allow_days);
@@ -223,7 +223,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
               if ('Payment_RecurOfflineACHEFT' == $class_name) {
                 $params['payment_instrument_id'] = 5;
               }
-              $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
+              $allow_days = empty($contributionrecur_settings['days']) ? ['-1'] : $contributionrecur_settings['days'];
               if (0 < max($allow_days)) {
                 $from_time = _contributionrecur_next(strtotime($params['receive_date']),$allow_days);
                 $params['receive_date'] = date('Ymd', $from_time).'030000';
@@ -250,7 +250,7 @@ function contributionrecur_civicrm_pre($op, $objectName, $objectId, &$params) {
 function contributionrecur_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
   if (isset($form->_paymentProcessor['class_name'])) {
     if ($form->_paymentProcessor['class_name'] == 'Payment_RecurOffline') {
-      foreach(array('credit_card_number','cvv2') as $elementName) {
+      foreach(['credit_card_number','cvv2'] as $elementName) {
         if ($form->elementExists($elementName)){
           $element = $form->getElement($elementName);
           $form->removeElement($elementName, true);
@@ -259,7 +259,7 @@ function contributionrecur_civicrm_validateForm($formName, &$fields, &$files, &$
       }
     }
     elseif ($form->_paymentProcessor['class_name'] == 'Payment_RecurOfflineACHEFT') {
-      foreach(array('account_holder','bank_account_number','bank_identification_number','bank_name') as $elementName) {
+      foreach(['account_holder','bank_account_number','bank_identification_number','bank_name'] as $elementName) {
         if ($form->elementExists($elementName)){
           $element = $form->getElement($elementName);
           $form->removeElement($elementName, true);
@@ -275,12 +275,12 @@ function contributionrecur_civicrm_validateForm($formName, &$fields, &$files, &$
  * So we have to dig back via the contribution_recur_id that it is associated with.
  */
 function _contributionrecur_payment_processor_id($contribution_recur_id) {
-  $params = array(
+  $params = [
     'version' => 3,
     'sequential' => 1,
     'id' => $contribution_recur_id,
     'return' => 'payment_processor_id'
-  );
+  ];
   try {
     $result = civicrm_api3('ContributionRecur', 'getvalue', $params);
     if (empty($result)) {
@@ -302,12 +302,12 @@ function _contributionrecur_payment_processor_id($contribution_recur_id) {
  * but you could remove class_name to fix them also
  */
 function _contributionrecur_pp_info($payment_processor_id, $return, $class_name = NULL) {
-  $params = array(
+  $params = [
     'version' => 3,
     'sequential' => 1,
     'id' => $payment_processor_id,
     'return' => $return
-  );
+  ];
   if (!empty($class_name)) {
     $params['class_name'] = $class_name;
   }
@@ -360,7 +360,7 @@ function contributionrecur_CRM_Contribute_Form_Contribution(&$form) {
     $class_name = _contributionrecur_pp_info($pp_id,'class_name');
     if ($class_name) {
       if ('Payment_RecurOffline' == substr($class_name,0,20)) {
-        foreach(array('fee_amount','net_amount') as $elementName) {
+        foreach(['fee_amount','net_amount'] as $elementName) {
           if ($form->elementExists($elementName)){
             $form->getElement($elementName)->unfreeze();
           }
@@ -398,10 +398,10 @@ function contributionrecur_CRM_Contribute_Form_Contribution_Main(&$form) {
   }
   $contributionrecur_settings = Civi::settings()->get('contributionrecur_settings');
   // if the site administrator has resticted the recurring days
-  $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
+  $allow_days = empty($contributionrecur_settings['days']) ? ['-1'] : $contributionrecur_settings['days'];
   if (max($allow_days) > 0) {
     $next_time = _contributionrecur_next(strtotime('+1 day'),$allow_days);
-    contributionrecur_civicrm_varset(array('nextDate' => date('Y-m-d', $next_time)));
+    contributionrecur_civicrm_varset(['nextDate' => date('Y-m-d', $next_time)]);
     CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/front.js');
   }
 }
@@ -437,32 +437,32 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   if (empty($contributionrecur_settings['edit_extra'])) {
     return;
   }
-  $allow_days = empty($contributionrecur_settings['days']) ? array('-1') : $contributionrecur_settings['days'];
+  $allow_days = empty($contributionrecur_settings['days']) ? ['-1'] : $contributionrecur_settings['days'];
   if (0 < max($allow_days)) {
-    $userAlert = ts('Your next scheduled contribution date will automatically be updated to the next allowable day of the month: %1',array(1 => implode(',',$allow_days)));
+    $userAlert = ts('Your next scheduled contribution date will automatically be updated to the next allowable day of the month: %1',[1 => implode(',',$allow_days)]);
     CRM_Core_Session::setStatus($userAlert, ts('Warning'), 'alert');
   }
   $crid = CRM_Utils_Request::retrieve('crid', 'Integer', $form, FALSE);
   /* get the recurring contribution record and the contact record, or quit */
   try {
-    $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
+    $recur = civicrm_api3('ContributionRecur', 'getsingle', ['id' => $crid]);
   }
   catch (CRM_Core_Exception $e) {
     return;
   }
   try {
-    $contact = civicrm_api3('Contact', 'getsingle', array('id' => $recur['contact_id']));
+    $contact = civicrm_api3('Contact', 'getsingle', ['id' => $recur['contact_id']]);
   }
   catch (CRM_Core_Exception $e) {
     return;
   }
   // turn off default notification checkbox, most will want to hide it as well.
-  $defaults = array('is_notify' => 0);
-  $edit_fields = array(
+  $defaults = ['is_notify' => 0];
+  $edit_fields = [
     'contribution_status_id' => 'Status',
     'next_sched_contribution_date' => 'Next Scheduled Contribution',
     'start_date' => 'Start Date',
-  );
+  ];
   foreach(array_keys($edit_fields) as $fid) {
     if ($form->elementExists($fid)) {
       unset($edit_fields[$fid]);
@@ -494,9 +494,9 @@ function contributionrecur_CRM_Contribute_Form_UpdateSubscription(&$form) {
   $label = $labels[$recur['payment_instrument_id']];
   $form->addElement('static','payment_instrument',$label);
   $form->addElement('static','failure_count',$recur['failure_count']);
-  CRM_Core_Region::instance('page-body')->add(array(
+  CRM_Core_Region::instance('page-body')->add([
     'template' => 'CRM/Contributionrecur/Subscription.tpl',
-  ));
+  ]);
   CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription.js');
 }
 
@@ -520,7 +520,7 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
   // get the recurring contribution record or quit
   $crid = CRM_Utils_Request::retrieve('id', 'Integer', $page, FALSE);
   try {
-    $recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $crid));
+    $recur = civicrm_api3('ContributionRecur', 'getsingle', ['id' => $crid]);
   }
   catch (CRM_Core_Exception $e) {
     return;
@@ -531,9 +531,9 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
   $template->assign('adHocContributionLink',
     '<a href="'.$adHocContributionLink.'">Generate</a>'
   );
-  CRM_Core_Region::instance('page-body')->add(array(
+  CRM_Core_Region::instance('page-body')->add([
     'template' => 'CRM/Contributionrecur/ContributionRecur.tpl',
-  ));
+  ]);
   CRM_Core_Resources::singleton()->addScriptFile('ca.civicrm.contributionrecur', 'js/subscription_view.js');
 }
 
@@ -542,7 +542,7 @@ function contributionrecur_pageRun_CRM_Contribute_Page_ContributionRecur($page) 
 function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
   $contactId = CRM_Utils_Request::retrieve('cid', 'Positive');
   $recur_edit_url = CRM_Utils_System::url('civicrm/contribute/updaterecur','reset=1&action=update&context=contribution&cid='.$contactId.'&crid=');
-  contributionrecur_civicrm_varset(array('recur_edit_url' => $recur_edit_url));
+  contributionrecur_civicrm_varset(['recur_edit_url' => $recur_edit_url]);
 }
 
 /**
@@ -552,16 +552,16 @@ function contributionrecur_pageRun_CRM_Contact_Page_View_Summary($page) {
  */
 function contributionrecur_civicrm_searchTasks($objectType, &$tasks ) {
   if ( $objectType == 'contribution' && CRM_Core_Permission::check('edit contributions')) {
-    $tasks[] = array (
-      'title' => ts('Convert Pending Offline Contributions to Completed', array('domain' => 'ca.civicrm.contributionrecur')),
+    $tasks[] = [
+      'title' => ts('Convert Pending Offline Contributions to Completed', ['domain' => 'ca.civicrm.contributionrecur']),
       'class' => 'CRM_Contributionrecur_Task_CompletePending',
-      'result' => TRUE);
+      'result' => TRUE];
   }
   elseif ( $objectType == 'contact' && CRM_Core_Permission::check('edit contributions')) {
-    $tasks[] = array (
-      'title' => ts('Generate Reversing Membership Payments', array('domain' => 'ca.civicrm.contributionrecur')),
+    $tasks[] = [
+      'title' => ts('Generate Reversing Membership Payments', ['domain' => 'ca.civicrm.contributionrecur']),
       'class' => 'CRM_Contributionrecur_Task_MembershipPayments',
-      'result' => TRUE);
+      'result' => TRUE];
   }
 }
 
@@ -569,21 +569,21 @@ function _contributionrecur_get_iats_extra($recur) {
   if (empty($recur['id']) && empty($recur['invoice_id'])) {
     return;
   }
-  $extra = array();
-  $params = array(1 => array('civicrm_iats_customer_codes', 'String'));
+  $extra = [];
+  $params = [1 => ['civicrm_iats_customer_codes', 'String']];
   $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
   if (!empty($recur['id']) && $dao->fetch()) {
-    $params = array(1 => array($recur['id'],'Integer'));
+    $params = [1 => [$recur['id'],'Integer']];
     $dao = CRM_Core_DAO::executeQuery("SELECT expiry FROM civicrm_iats_customer_codes WHERE recur_id = %1", $params);
     if ($dao->fetch()) {
       $expiry = str_split($dao->expiry,2);
       $extra['expiry'] = '20'.implode('-',$expiry);
     }
   }
-  $params = array(1 => array('civicrm_iats_request_log', 'String'));
+  $params = [1 => ['civicrm_iats_request_log', 'String']];
   $dao = CRM_Core_DAO::executeQuery("SHOW TABLES LIKE %1", $params);
   if (!empty($recur['invoice_id']) && $dao->fetch()) {
-    $params = array(1 => array($recur['invoice_id'],'String'));
+    $params = [1 => [$recur['invoice_id'],'String']];
     $dao = CRM_Core_DAO::executeQuery("SELECT cc FROM civicrm_iats_request_log WHERE invoice_num = %1", $params);
     if ($dao->fetch()) {
       $extra['cc'] = $dao->cc;
@@ -597,8 +597,8 @@ function _contributionrecur_get_iats_extra($recur) {
  */
 function _contributionrecur_civicrm_getContributionTemplate($contribution) {
   // Get the most recent contribution in this series that matches the same total_amount, if present
-  $template = array();
-  $get = array('version'  => 3, 'contribution_recur_id' => $contribution['contribution_recur_id'], 'options'  => array('sort'  => ' id DESC' , 'limit'  => 1));
+  $template = [];
+  $get = ['version'  => 3, 'contribution_recur_id' => $contribution['contribution_recur_id'], 'options'  => ['sort'  => ' id DESC' , 'limit'  => 1]];
   if (!empty($contribution['total_amount'])) {
     $get['total_amount'] = $contribution['total_amount'];
   }
@@ -606,13 +606,13 @@ function _contributionrecur_civicrm_getContributionTemplate($contribution) {
   if (!empty($result['values'])) {
     $contribution_ids = array_keys($result['values']);
     $template = $result['values'][$contribution_ids[0]];
-    $template['line_items'] = array();
-    $get = array('version'  => 3, 'entity_table' => 'civicrm_contribution', 'entity_id' => $contribution_ids[0]);
+    $template['line_items'] = [];
+    $get = ['version'  => 3, 'entity_table' => 'civicrm_contribution', 'entity_id' => $contribution_ids[0]];
     $result = civicrm_api('LineItem', 'get', $get);
     if (!empty($result['values'])) {
       foreach($result['values'] as $initial_line_item) {
-        $line_item = array();
-        foreach(array('price_field_id','qty','line_total','unit_price','label','price_field_value_id','financial_type_id') as $key) {
+        $line_item = [];
+        foreach(['price_field_id','qty','line_total','unit_price','label','price_field_value_id','financial_type_id'] as $key) {
           $line_item[$key] = $initial_line_item[$key];
         }
         $template['line_items'] = $line_item;
