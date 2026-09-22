@@ -21,20 +21,20 @@ function _civicrm_api3_job_recurringgenerate_spec(&$spec) {
       'labelColumn' => 'name',
     ],
   ];
-  $spec['id'] = array(
+  $spec['id'] = [
     'title' => 'Recurring payment id',
-  );
-  $spec['contact_id'] = array(
+  ];
+  $spec['contact_id'] = [
     'title' => 'Contact id',
-  );
-  $spec['catchup'] = array(
+  ];
+  $spec['catchup'] = [
     'title' => 'Process as if in the past to catch up.',
     'api.required' => 0,
-  );
-  $spec['ignoremembership'] = array(
+  ];
+  $spec['ignoremembership'] = [
     'title' => 'Ignore memberships',
     'api.required' => 0,
-  );
+  ];
 }
 
 /**
@@ -58,12 +58,12 @@ function civicrm_api3_job_recurringgenerate($params) {
   unset($params['catchup']);
   $domemberships = empty($params['ignoremembership']);
   unset($params['ignoremembership']);
-  $contributionrecur_settings = civicrm_api3('Setting', 'getvalue', array('name' => 'contributionrecur_settings'));
+  $contributionrecur_settings = civicrm_api3('Setting', 'getvalue', ['name' => 'contributionrecur_settings']);
   // new contributions are either complete or left pending, default pending
   $new_contribution_status_id = empty($contributionrecur_settings['complete']) ? 2 : 1;
   // running this job in parallell could generate bad duplicate contributions
   $lock = new CRM_Core_Lock('civimail.job.Recurringgenerate');
-  $update = array();
+  $update = [];
   // $config = &CRM_Core_Config::singleton();
   // $debug  = false;
   // do my calculations based on yyyymmddhhmmss representation of the time
@@ -86,13 +86,13 @@ function civicrm_api3_job_recurringgenerate($params) {
         AND (c.total_amount > 0) 
         AND (cr.contribution_status_id IN (1,5)) 
   ';
-  $spec = array();
+  $spec = [];
   _civicrm_api3_job_recurringgenerate_spec($spec);
   $param_where = '';
   foreach($params as $key => $value) {
     if (isset($spec[$key])) {
       $f = explode(',',$value);
-      $clean = array();
+      $clean = [];
       foreach($f as $id) {
         if (!is_numeric($id) || empty($id)) {
           throw new CRM_Core_Exception(ts('Invalid syntax: '.$value));
@@ -112,7 +112,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     if ($dao->installments_done < $dao->installments) { // at least one more installments
       if (($dao->end_date > 0) && ($dao->end_date <= $dao->test_now)) { // unset the end_date
         $update = 'UPDATE civicrm_contribution_recur SET end_date = NULL WHERE id = %1';
-        CRM_Core_DAO::executeQuery($update,array(1 => array($dao->id,'Int')));
+        CRM_Core_DAO::executeQuery($update,[1 => [$dao->id,'Int']]);
       }
     }
     // otherwise, check if my end date should be set to the past because I have finished
@@ -120,7 +120,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       if (empty($dao->end_date) || ($dao->end_date >= $dao->test_now)) { 
         // this interval complete, set the end_date to an hour ago
         $update = 'UPDATE civicrm_contribution_recur SET end_date = DATE_SUB(NOW(),INTERVAL 1 HOUR) WHERE id = %1';
-        CRM_Core_DAO::executeQuery($update,array(1 => array($dao->id,'Int')));
+        CRM_Core_DAO::executeQuery($update,[1 => [$dao->id,'Int']]);
       }
     }
   }
@@ -171,16 +171,16 @@ function civicrm_api3_job_recurringgenerate($params) {
   //      AND pp.is_test = 0
   // process all recurring contributions due today or earlier
   $select .= ' AND cr.next_sched_contribution_date <= %1';
-  $args[1] = array($dtCurrentDayEnd, 'String');
+  $args[1] = [$dtCurrentDayEnd, 'String'];
   $dao = CRM_Core_DAO::executeQuery($select,$args);
   $counter = 0;
-  $output  = array();
+  $output  = [];
 
   while ($dao->fetch()) {
 
     // Create all the contribution record with status = 2 (= pending), so that they must be completed manually. 
     // Try to get a contribution template for this contribution series - if none matches (e.g. if a donation amount has been changed), we'll just be naive about it.
-    $contribution_template = _contributionrecur_civicrm_getContributionTemplate(array('contribution_recur_id' => $dao->id, 'total_amount' => $dao->amount));
+    $contribution_template = _contributionrecur_civicrm_getContributionTemplate(['contribution_recur_id' => $dao->id, 'total_amount' => $dao->amount]);
     $contact_id = $dao->contact_id;
     $total_amount = $dao->amount;
     $hash = md5(uniqid(rand(), true));
@@ -189,8 +189,8 @@ function civicrm_api3_job_recurringgenerate($params) {
     $source = "Recurring Contribution (id=$contribution_recur_id, class=$pp_type)"; 
     $receive_date = $catchup ? strtotime($dao->next_sched_contribution_date) : time();
     // check if we already have an error
-    $errors = array();
-    $contribution = array(
+    $errors = [];
+    $contribution = [
       'version'        => 3,
       'contact_id'       => $contact_id,
       'receive_date'       => date('YmdHis',$receive_date),
@@ -205,7 +205,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       'payment_processor'   => $dao->payment_processor_id,
       'is_test'        => $dao->is_test, /* propagate the is_test value from the parent contribution */
       'financial_type_id' => $dao->financial_type_id
-    );
+    ];
     // add any custom contribution values from the template
     foreach ($contribution_template as $field => $template_value) {
       if (substr($field, 0, 7) == 'custom_') {
@@ -213,7 +213,7 @@ function civicrm_api3_job_recurringgenerate($params) {
       }
     }
     // add some special values from the template
-    $get_from_template = array('contribution_campaign_id','amount_level');
+    $get_from_template = ['contribution_campaign_id','amount_level'];
     foreach($get_from_template as $field) {
       if (isset($contribution_template[$field])) {
         $contribution[$field] = is_array($contribution_template[$field]) ?  implode(', ',$contribution_template[$field]) : $contribution_template[$field];
@@ -233,9 +233,9 @@ function civicrm_api3_job_recurringgenerate($params) {
     // if our template contribution has a membership payment, make this one also
     if ($domemberships && !empty($contribution_template['contribution_id'])) {
       try {
-        $membership_payment = civicrm_api('MembershipPayment','getsingle', array('version' => 3, 'contribution_id' => $contribution_template['contribution_id']));
+        $membership_payment = civicrm_api('MembershipPayment','getsingle', ['version' => 3, 'contribution_id' => $contribution_template['contribution_id']]);
         if (!empty($membership_payment['membership_id'])) {
-          civicrm_api('MembershipPayment','create', array('version' => 3, 'contribution_id' => $contribution_id, 'membership_id' => $membership_payment['membership_id']));
+          civicrm_api('MembershipPayment','create', ['version' => 3, 'contribution_id' => $contribution_id, 'membership_id' => $membership_payment['membership_id']]);
         }
       }
       catch (Exception $e) {
@@ -246,14 +246,14 @@ function civicrm_api3_job_recurringgenerate($params) {
     // if our template contribution has a soft-credit, make this one also
     if (!empty($contribution_template['soft_credit'])) {
       foreach($contribution_template['soft_credit'] as $soft_credit) {
-        $params = array(
+        $params = [
           'sequential' => 1,
           'contribution_id' => $contribution_id,
           'contact_id' => $soft_credit['contact_id'],
           'amount' => $soft_credit['amount'],
           'currency' => $soft_credit['currency'],
           'soft_credit_type_id' => $soft_credit['soft_credit_type']
-        );
+        ];
         try {
           $result = civicrm_api3('ContributionSoft', 'create', $params);
         }
@@ -272,10 +272,10 @@ function civicrm_api3_job_recurringgenerate($params) {
       UPDATE civicrm_contribution_recur 
          SET next_sched_contribution_date = %1 
        WHERE id = %2
-    ", array(
-         1 => array($next_collectionDate, 'String'),
-         2 => array($dao->id, 'Int')
-       )
+    ", [
+         1 => [$next_collectionDate, 'String'],
+         2 => [$dao->id, 'Int']
+       ]
     );
     ++$counter;
   }
@@ -296,7 +296,7 @@ function civicrm_api3_job_recurringgenerate($params) {
     if ($dao->installments_done >= $dao->installments) { // I'm done with installments
       // set this series complete and the end_date to now
       $update = 'UPDATE civicrm_contribution_recur SET contribution_status_id = 1, end_date = NOW() WHERE id = %1';
-      CRM_Core_DAO::executeQuery($update,array(1 => array($dao->id,'Int')));
+      CRM_Core_DAO::executeQuery($update,[1 => [$dao->id,'Int']]);
     }
   }
 
@@ -306,9 +306,9 @@ function civicrm_api3_job_recurringgenerate($params) {
     return civicrm_api3_create_success(
       ts(
         '%1 contribution record(s) were processed.',
-        array(
+        [
           1 => $counter
-        )
+        ]
       ) . "<br />" . implode("<br />", $output)
     );
   }

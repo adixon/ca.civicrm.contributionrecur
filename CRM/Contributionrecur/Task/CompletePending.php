@@ -28,7 +28,7 @@ class CRM_Contributionrecur_Task_CompletePending extends CRM_Contribute_Form_Tas
     );
 
     if ($id) {
-      $this->_contributionIds = array($id);
+      $this->_contributionIds = [$id];
       $this->_componentClause = " civicrm_contribution.id IN ( $id ) ";
       $this->_single = TRUE;
       $this->assign('totalSelectedContributions', 1);
@@ -81,7 +81,7 @@ WHERE  id IN ( $contribIDs )";
     );
 
     // build a row for each contribution id
-    $this->_rows   = array();
+    $this->_rows   = [];
     $amount = 0;
     while ($dao->fetch()) {
       $row['id'] = $dao->id;
@@ -97,17 +97,17 @@ WHERE  id IN ( $contribIDs )";
     $this->assign('totalAmount', $amount);
     $this->assign('totalCount', count($this->_rows));
     $this->assign('rows', $this->_rows);
-    $this->addButtons(array(
-        array(
+    $this->addButtons([
+        [
           'type' => 'next',
           'name' => ts('Complete All These Contributions'),
           'isDefault' => TRUE,
-        ),
-        array(
+        ],
+        [
           'type' => 'back',
           'name' => ts('Cancel'),
-        ),
-      )
+        ],
+      ]
     );
 
   }

@@ -26,7 +26,7 @@ class CRM_Contributionrecur_Task_MembershipPayments extends CRM_Contact_Form_Tas
     );
 
     if ($id) {
-      $this->_contactIds = array($id);
+      $this->_contactIds = [$id];
       $this->_componentClause = " contact_a.id IN ( $id ) ";
       $this->_single = TRUE;
       $this->assign('totalSelectedContacts', 1);
@@ -62,15 +62,15 @@ AND    {$this->_componentClause}";
 
     $this->assign('totalCount', count($this->_contactIds));
     // and now add the configurable bits: financial type of member + reverse
-    $params = array('sequential' => 1);
+    $params = ['sequential' => 1];
     $result = civicrm_api3('FinancialType', 'get', $params);
-    $financial_types = array();
+    $financial_types = [];
     foreach($result['values'] as $ft) {
       $financial_types[$ft['id']] = $ft['name'];
     }
-    $params = array('sequential' => 1);
+    $params = ['sequential' => 1];
     $result = civicrm_api3('MembershipType', 'get', $params);
-    $membership_types = array();
+    $membership_types = [];
     foreach($result['values'] as $mt) {
       $membership_types[$mt['id']] = $mt['name'];
     }
@@ -82,18 +82,18 @@ AND    {$this->_componentClause}";
       'Amount', // field label
       TRUE, NULL, FALSE
     );
-    $this->addDateTime('receive_date', ts('Received'), FALSE, array('formatType' => 'activityDateTime'));
-    $this->addButtons(array(
-        array(
+    $this->addDateTime('receive_date', ts('Received'), FALSE, ['formatType' => 'activityDateTime']);
+    $this->addButtons([
+        [
           'type' => 'next',
           'name' => ts('Generate Reversing Membership Contributions'),
           'isDefault' => TRUE,
-        ),
-        array(
+        ],
+        [
           'type' => 'back',
           'name' => ts('Cancel'),
-        ),
-      )
+        ],
+      ]
     );
 
   }
@@ -107,29 +107,29 @@ AND    {$this->_componentClause}";
    */
   public function postProcess() {
     // for each contribution id, just update the contribution_status_id
-    $results = array();
+    $results = [];
     $values = $this->exportValues();
     //print_r($values);
     //print_r($this->_rows);
     // print_r($membership_type); die();
     foreach ($this->_contactIds as $contact_id) {
       try {
-        $membership = civicrm_api3('Membership', 'getsingle', array('sequential' => 1, 'contact_id' => $contact_id, 'membership_type_id' => $values['membership_type_id']));
+        $membership = civicrm_api3('Membership', 'getsingle', ['sequential' => 1, 'contact_id' => $contact_id, 'membership_type_id' => $values['membership_type_id']]);
       }
       catch (CRM_Core_Exception $e) {
        // ignore
       }
       if (empty($membership['id'])) {
-        $result = civicrm_api3('Membership', 'get', array('sequential' => 1, 'contact_id' => $contact_id, 'options' => array('limit' => 1, 'sort' => 'id DESC')));
+        $result = civicrm_api3('Membership', 'get', ['sequential' => 1, 'contact_id' => $contact_id, 'options' => ['limit' => 1, 'sort' => 'id DESC']]);
         $membership = $result['values'][0];
       }
       try {
         // get details of last matching contribution
-        $params = array('version' => 3, 'sequential' => 1, 'contact_id' => $contact_id, 'financial_type_id' => $values['donation_ft_id'], 'options' => array('limit' => 1, 'sort' => 'id DESC')); // , 'contribution_recur_id' => array('>','0'));
+        $params = ['version' => 3, 'sequential' => 1, 'contact_id' => $contact_id, 'financial_type_id' => $values['donation_ft_id'], 'options' => ['limit' => 1, 'sort' => 'id DESC']]; // , 'contribution_recur_id' => array('>','0'));
         $result = civicrm_api3('Contribution', 'get', $params);
         $contribution = $result['values'][0]; 
         $hash = md5(uniqid(rand(), true));
-        $membership_contribution = array(
+        $membership_contribution = [
           'version'        => 3,
           'contact_id'       => $contact_id,
           'receive_date'       => $values['receive_date'],
@@ -143,7 +143,7 @@ AND    {$this->_componentClause}";
           'currency'  => $contribution['currency'],
           'payment_processor'   => $contribution['payment_processor'],
           'financial_type_id' => $values['membership_ft_id'],
-        );
+        ];
         $reversal_contribution = $membership_contribution;
         $reversal_contribution['total_amount'] = -$membership_contribution['total_amount'];
         $reversal_contribution['financial_type_id'] = $contribution['financial_type_id'];
@@ -151,8 +151,8 @@ AND    {$this->_componentClause}";
         try {
           civicrm_api3('Contribution', 'create', $membership_contribution);
           civicrm_api3('Contribution', 'create', $reversal_contribution);
-          civicrm_api3('MembershipPayment','create', array('contribution_id' => $membership_contribution['id'], 'membership_id' => $membership['id']));
-          civicrm_api3('MembershipPayment','create', array('contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']));
+          civicrm_api3('MembershipPayment','create', ['contribution_id' => $membership_contribution['id'], 'membership_id' => $membership['id']]);
+          civicrm_api3('MembershipPayment','create', ['contribution_id' => $reversal_contribution['id'], 'membership_id' => $membership['id']]);
           $return[] = 'Created reversal contributions for contact id '. $contact_id;
         }
         catch (CRM_Core_Exception $e) {

@@ -12,14 +12,14 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
   protected function adHocContribution($values) {
     // generate another recurring contribution, matching our recurring template with submitted value
     $total_amount = $values['amount'];
-    $contribution_template = _contributionrecur_civicrm_getContributionTemplate(array('contribution_recur_id' => $values['crid']));
+    $contribution_template = _contributionrecur_civicrm_getContributionTemplate(['contribution_recur_id' => $values['crid']]);
     $contact_id = $values['cid'];
     $hash = md5(uniqid(rand(), true));
     $contribution_recur_id    = $values['crid'];
     $payment_processor_id = $values['paymentProcessorId'];
     $source = "Recurring Contribution (id=$contribution_recur_id)";
     $receive_date = date("YmdHis",strtotime($values['receive_date'])); 
-    $contribution = array(
+    $contribution = [
       'version'        => 3,
       'contact_id'       => $contact_id,
       'receive_date'       => $receive_date,
@@ -31,8 +31,8 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
       'contribution_status_id' => 2, /* initialize as pending, so we can run completetransaction after taking the money */
       'payment_processor'   => $payment_processor_id,
       'is_test'        => $values['is_test'], /* propagate the is_test value from the form */
-    );
-    foreach(array('payment_instrument_id','currency','financial_type_id') as $key) {
+    ];
+    foreach(['payment_instrument_id','currency','financial_type_id'] as $key) {
       $contribution[$key] = $contribution_template[$key];
     }
     // create the pending contribution, and save its id
@@ -52,12 +52,12 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
     $crid = CRM_Utils_Request::retrieve('crid', 'Integer');
     $paymentProcessorId = CRM_Utils_Request::retrieve('paymentProcessorId', 'Positive');
     $is_test = CRM_Utils_Request::retrieve('is_test', 'Integer');
-    $defaults = array(
+    $defaults = [
       'cid' => $cid,
       'crid' => $crid,
       'paymentProcessorId' => $paymentProcessorId,
       'is_test' => $is_test,
-    );
+    ];
     $this->setDefaults($defaults);
     /* show more details?  */
     /* $customer = $this->getCustomerCodeDetail($defaults);
@@ -80,17 +80,17 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
       ts('Received'), // field label
       FALSE
     );
-    $this->addButtons(array(
-      array(
+    $this->addButtons([
+      [
         'type' => 'submit',
         'name' => ts('Generate Contribution'),
         'isDefault' => TRUE,
-      ),
-      array(
+      ],
+      [
         'type' => 'cancel',
         'name' => ts('Back')
-      )
-    ));
+      ]
+    ]);
 
     // export form elements
     $this->assign('elementNames', $this->getRenderableElementNames());
@@ -117,7 +117,7 @@ class CRM_Contributionrecur_Form_ContributionRecurAdHoc extends CRM_Core_Form {
     // auto-rendered in the loop -- such as "qfKey" and "buttons".  These
     // items don't have labels.  We'll identify renderable by filtering on
     // the 'label'.
-    $elementNames = array();
+    $elementNames = [];
     foreach ($this->_elements as $element) {
       $label = $element->getLabel();
       if (!empty($label)) {
